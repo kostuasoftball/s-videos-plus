@@ -10,6 +10,9 @@
 
 ## Установка
 
+**[Скачать APK 0.1.0-alpha.3](https://github.com/kostuasoftball/s-videos-plus/releases/download/v0.1.0-alpha.3/S-Videos-Plus.apk)**
+· [Инструкция установки](INSTALL.md)
+
 Устанавливается **APK**, а не JavaScript-ссылкой в Lampa. Lampa для запуска не нужна.
 Минимум Android 6.0 (API 23), современный Android System WebView, пульт с D-pad/OK/Back.
 Тестовые APK публикуются в разделе Releases этого репозитория после успешной сборки.
