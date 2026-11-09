@@ -11,6 +11,9 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.webkit.WebChromeClient;
+import android.webkit.ConsoleMessage;
+import android.util.Log;
 import android.widget.FrameLayout;
 import androidx.media3.common.util.UnstableApi;
 import org.json.JSONObject;
@@ -43,7 +46,26 @@ public final class MainActivity extends Activity {
         settings.setJavaScriptCanOpenWindowsAutomatically(false); settings.setSupportMultipleWindows(false);
         web.setBackgroundColor(0xFF0D111B); web.setFocusable(true); web.setFocusableInTouchMode(true);
         web.addJavascriptInterface(new Bridge(), "SVideosAndroid");
+        web.setWebChromeClient(new WebChromeClient() {
+            @Override public boolean onConsoleMessage(ConsoleMessage message) {
+                if (message.messageLevel() == ConsoleMessage.MessageLevel.ERROR) {
+                    Log.e("SVideosUI", "JavaScript error at line " + message.lineNumber() + ": " + message.message().substring(0, Math.min(message.message().length(), 240)));
+                }
+                return true;
+            }
+        });
         web.setWebViewClient(new WebViewClient() {
+            @Override public void onPageFinished(WebView view, String url) {
+                if (!ORIGIN.equals(Uri.parse(url).getHost())) return;
+                view.evaluateJavascript("JSON.stringify({booted:!!window.SVideosUI,sources:document.querySelectorAll('.source').length})", result -> {
+                    try {
+                        Object decoded = new org.json.JSONTokener(result).nextValue();
+                        JSONObject ready = new JSONObject(String.valueOf(decoded));
+                        Log.i("SVideosUI", "Packaged page readiness: " + ready);
+                        if (ready.optBoolean("booted") && ready.optInt("sources") == 8) view.setContentDescription("S Videos + · каталог готов");
+                    } catch (Exception ignored) { Log.e("SVideosUI", "Packaged page readiness unavailable"); }
+                });
+            }
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) { return true; }
             @SuppressWarnings("deprecation")
             @Override public boolean shouldOverrideUrlLoading(WebView view, String url) { return true; }
@@ -83,7 +105,9 @@ public final class MainActivity extends Activity {
         runOnUiThread(() -> {
             if (!destroyed) {
                 if (type.equals("closed")) web.requestFocus();
-                web.evaluateJavascript("window.SVideosEvent&&window.SVideosEvent(" + JSONObject.quote(type) + "," + JSONObject.quote(detail) + ")", null);
+                String script = "window.SVideosEvent&&window.SVideosEvent(" + JSONObject.quote(type) + "," + JSONObject.quote(detail) + ")";
+                if (type.equals("back")) script += ";JSON.stringify({panelOpen:!document.getElementById('modal-layer').hidden})";
+                web.evaluateJavascript(script, value -> { if (type.equals("back")) Log.i("SVideosUI", "Back panel state: " + value); });
             }
         });
     }

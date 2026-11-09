@@ -100,6 +100,9 @@
       $('empty').appendChild(button('Повторить загрузку', 'action', () => model.load()));
     }
     if (state.error && state.items.length) toast(state.error);
+    if (!modal && !playing && !state.busy && document.activeElement === document.body) {
+      focus(document.querySelector('.card') || $('empty').querySelector('button') || document.querySelector('.source.active'));
+    }
   }
   function selectSource(id) { app.Settings.set('last_source', id); closePanel(); return model.source(id); }
   function countryPanel() {
@@ -132,7 +135,7 @@
   }
   function settingsPanel() {
     panel('Настройки', body => {
-      description(body, 'S Videos + · 0.1.0-alpha.1');
+      description(body, 'S Videos + · 0.1.0-alpha.2');
       option(body, 'Резервный публичный прокси: ' + (app.Settings.get('public_proxy', false) ? 'Включён' : 'Выключен'), () => { app.Settings.set('public_proxy', !app.Settings.get('public_proxy', false)); settingsPanel(); });
       description(body, 'Прокси — внешний сервис для публичных каталогов. По умолчанию выключен. Cookie аккаунта через него не передаются.');
       ['stripchat', 'chaturbate'].forEach(id => option(body, 'Аккаунт ' + app.getAdapter(id).getName() + '  ›', () => accountPanel(id)));

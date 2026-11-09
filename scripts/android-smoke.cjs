@@ -17,14 +17,20 @@ async function dump(name) {
   adb('shell', 'am', 'start', '-W', '-n', 'app.svideos.plus/.MainActivity');
   await wait(20000);
   if (!adb('shell', 'pidof', 'app.svideos.plus').trim()) throw new Error('Application process did not survive launch');
-  const first = await dump('launch');
-  if (!first.includes('Stripchat') || !first.includes('S Videos')) throw new Error('Packaged WebView UI did not render');
   fs.writeFileSync(path.join(dir, 'android-launch.png'), execFileSync('adb', ['exec-out', 'screencap', '-p'], { timeout: 30000 }));
+  fs.writeFileSync(path.join(dir, 'android-webview-log.txt'), adb('logcat', '-d', '-s', 'SVideosUI:I', 'chromium:E', 'AndroidRuntime:E'));
+  const first = await dump('launch');
+  if (!first.includes('каталог готов')) throw new Error('Packaged WebView UI did not report readiness');
   adb('shell', 'input', 'keyevent', '4'); await wait(1000);
   const exit = await dump('back');
-  if (!exit.includes('Выйти') && !exit.includes('Остаться')) throw new Error('Back did not open exit confirmation');
+  // WebView accessibility descendants may not be exported by a headless emulator.
+  // The process and a subsequent Back are checked below; screenshots record the state.
+  fs.writeFileSync(path.join(dir, 'android-back.png'), execFileSync('adb', ['exec-out', 'screencap', '-p'], { timeout: 30000 }));
   adb('shell', 'input', 'keyevent', '4'); await wait(1000);
   if (!adb('shell', 'pidof', 'app.svideos.plus').trim()) throw new Error('Back unexpectedly terminated the app');
+  const uiLog = adb('logcat', '-d', '-s', 'SVideosUI:I');
+  fs.writeFileSync(path.join(dir, 'android-webview-log.txt'), uiLog);
+  if (!/panelOpen[^a-zA-Z]*true/.test(uiLog) || !/panelOpen[^a-zA-Z]*false/.test(uiLog)) throw new Error('Back did not open and close the confirmation panel');
   const log = adb('logcat', '-d', '-s', 'AndroidRuntime:E');
   fs.writeFileSync(path.join(dir, 'android-runtime.txt'), log);
   if (log.includes('FATAL EXCEPTION')) throw new Error('Android runtime crash detected');

@@ -11,13 +11,29 @@ const root = path.resolve(__dirname, '../app/src/main/assets/js');
   files.forEach(file => vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), ctx, { filename: file }));
   const proxy = process.argv.includes('--proxy');
   if (proxy) ctx.SisiPlus.Settings.set('public_proxy', true);
-  const ids = process.argv.slice(2).filter(value => value !== '--proxy');
+  const checkStreams = process.argv.includes('--streams');
+  const ids = process.argv.slice(2).filter(value => !value.startsWith('--'));
   const results = await Promise.all((ids.length ? ids : ['stripchat', 'chaturbate']).map(async id => {
     try {
       const adapter = ctx.SisiPlus.getAdapter(id);
       const categories = await adapter.getCategories();
       const result = await adapter.getList(categories[0].id, 1, {});
-      return { source: id, cards: result.items.length, ok: result.items.length > 0 };
+      const status = { source: id, cards: result.items.length, ok: result.items.length > 0 };
+      if (checkStreams && result.items.length) {
+        try {
+          const item = result.items[0];
+          const video = await adapter.getVideo(item.id, item);
+          status.streamQualities = Object.keys(video.streams || {});
+          const manifest = Object.values(video.streams || {}).find(url => typeof url === 'string' && url.includes('.m3u8'));
+          if (manifest) {
+            const response = await fetch(manifest, { headers: video.headers || {}, signal: AbortSignal.timeout(18000) });
+            status.hlsHttp = response.status;
+            if (response.ok) status.hlsManifest = (await response.text()).startsWith('#EXTM3U');
+            else if (response.body) await response.body.cancel();
+          }
+        } catch (error) { status.streamError = error.message; }
+      }
+      return status;
     } catch (error) { return { source: id, ok: false, error: error.message }; }
   }));
   console.log(JSON.stringify({ checkedAt: new Date().toISOString(), proxyEnabled: proxy, results }, null, 2));
