@@ -64,10 +64,31 @@
     async getVideo(id, item = {}) {
       const username = item.id || id;
       const pageUrl = item.webpageUrl || `${SITE}/${encodeURIComponent(username)}/`;
-      const html = await app.Api.siteText(pageUrl, {
-        referer: `${SITE}/`, headers: { Cookie: 'agreeterms=1; over18=1' }
-      });
       let stream = '';
+      let lastError;
+      // Public stream resolution must not be tied to an account Cookie: otherwise
+      // the privacy guard correctly disables all public-proxy fallbacks.
+      const requests = [
+        () => app.Api.siteJson(`${SITE}/api/chatvideocontext/${encodeURIComponent(username)}/`, {
+          referer: `${SITE}/`, headers: { Accept: 'application/json' }
+        }),
+        () => app.Api.siteJson(`${SITE}/get_edge_hls_url_ajax/`, {
+          method: 'POST', body: `room_slug=${encodeURIComponent(username)}&bandwidth=high`, referer: pageUrl,
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest', Origin: SITE }
+        })
+      ];
+      for (const request of requests) {
+        try {
+          const context = await request();
+          if (context.room_status && context.room_status !== 'public') throw Object.assign(new Error('Комната сейчас не транслируется публично'), { roomUnavailable: true });
+          stream = context.hls_source || context.url || '';
+          if (stream) break;
+        } catch (error) { if (error.roomUnavailable) throw error; lastError = error; }
+      }
+      if (stream) return { title: item.title || username, poster: item.poster || '', mimeType: 'application/x-mpegURL', streams: { HLS: stream }, webpageUrl: pageUrl, headers: { Referer: `${SITE}/`, Origin: SITE } };
+      let html = '';
+      try { html = await app.Api.siteText(pageUrl, { referer: `${SITE}/` }); }
+      catch (error) { lastError = error; }
       const assignment = html.match(/initialRoomDossier\s*=\s*("(?:\\.|[^"\\])*")/);
       if (assignment) {
         try {
@@ -84,7 +105,11 @@
           try { stream = JSON.parse(`"${escaped[1]}"`); } catch (error) {}
         }
       }
-      return { title: item.title || username, poster: item.poster || '', streams: stream ? { HLS: stream } : {}, webpageUrl: pageUrl, headers: { Referer: `${SITE}/` } };
+      if (!stream && lastError) {
+        const status = lastError.status ? ` (HTTP ${lastError.status})` : '';
+        throw new Error(`Chaturbate не выдал публичный поток${status}. Попробуйте другой HTTPS-прокси в настройках.`);
+      }
+      return { title: item.title || username, poster: item.poster || '', mimeType: 'application/x-mpegURL', streams: stream ? { HLS: stream } : {}, webpageUrl: pageUrl, headers: { Referer: `${SITE}/`, Origin: SITE } };
     }
 
     sessionCookie(session) {

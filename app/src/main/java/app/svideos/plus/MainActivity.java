@@ -29,6 +29,7 @@ public final class MainActivity extends Activity {
     private static final String ORIGIN = "appassets.androidplatform.net";
     private WebView web;
     private SecureStore store;
+    private ImageLoader images;
     private PlaybackHost playback;
     private volatile boolean destroyed;
     private final ThreadPoolExecutor network = new ThreadPoolExecutor(4, 4, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<>(32));
@@ -38,6 +39,7 @@ public final class MainActivity extends Activity {
         super.onCreate(saved);
         getWindow().getDecorView().setSystemUiVisibility(5894);
         store = new SecureStore(this);
+        images = new ImageLoader(store);
         FrameLayout root = new FrameLayout(this); setContentView(root);
         web = new WebView(this); root.addView(web, new FrameLayout.LayoutParams(-1, -1));
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG);
@@ -74,6 +76,7 @@ public final class MainActivity extends Activity {
                 Uri uri = request.getUrl();
                 if (!ORIGIN.equals(uri.getHost())) return null;
                 String path = uri.getPath();
+                if ("/image".equals(path)) return images.load(uri);
                 if (path == null || path.contains("..") || !path.startsWith("/")) return errorResponse();
                 if (path.equals("/")) path = "/index.html";
                 String mime = path.endsWith(".js") ? "application/javascript" : path.endsWith(".css") ? "text/css" : path.endsWith(".html") ? "text/html" : path.endsWith(".svg") ? "image/svg+xml" : "application/octet-stream";
@@ -81,7 +84,7 @@ public final class MainActivity extends Activity {
                 catch (Exception ignored) { return errorResponse(); }
             }
         });
-        playback = new PlaybackHost(this, root, this::event);
+        playback = new PlaybackHost(this, root, this::event, store);
         web.loadUrl("https://" + ORIGIN + "/index.html");
         web.requestFocus();
     }

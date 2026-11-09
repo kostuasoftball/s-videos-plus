@@ -7,8 +7,8 @@ android {
         applicationId 'app.svideos.plus'
         minSdk 23
         targetSdk 35
-        versionCode 3
-        versionName '0.1.0-alpha.3'
+        versionCode 4
+        versionName '0.1.0-alpha.4'
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -33,6 +33,7 @@ android {
         }
     }
     lint { abortOnError true }
+    testOptions { unitTests.includeAndroidResources = true }
 }
 
 dependencies {
@@ -40,4 +41,6 @@ dependencies {
     implementation 'androidx.media3:media3-exoplayer-hls:1.8.0'
     implementation 'androidx.media3:media3-exoplayer-dash:1.8.0'
     implementation 'androidx.media3:media3-ui:1.8.0'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.14.1'
 }

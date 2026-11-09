@@ -87,9 +87,12 @@
         card.addEventListener('focus', () => { lastFocusedCard = String(item.id); });
         card.addEventListener('contextmenu', event => { event.preventDefault(); videoMenu(item, index); });
         const poster = document.createElement('div'); poster.className = 'poster placeholder';
-        if (/^https:\/\//i.test(item.poster || '')) {
-          const image = document.createElement('img'); image.src = item.poster; image.loading = 'lazy'; image.alt = ''; image.referrerPolicy = 'no-referrer';
-          image.addEventListener('error', () => image.remove()); image.addEventListener('load', () => poster.classList.remove('placeholder')); poster.appendChild(image);
+        const images = item.poster ? app.Api.imageSources(item.poster, item.webpageUrl) : [];
+        if (images.length) {
+          let attempt = 0;
+          const image = document.createElement('img'); image.src = images[attempt]; image.loading = 'lazy'; image.alt = '';
+          image.addEventListener('error', () => { attempt += 1; if (attempt < images.length) image.src = images[attempt]; else image.remove(); });
+          image.addEventListener('load', () => poster.classList.remove('placeholder')); poster.appendChild(image);
         }
         const badge = document.createElement('span'); badge.className = 'badge'; badge.textContent = item.offline ? 'OFFLINE' : item.badge || 'Смотреть'; poster.appendChild(badge);
         const title = document.createElement('span'); title.className = 'card-title'; title.textContent = item.title;
@@ -142,13 +145,33 @@
   }
   function settingsPanel() {
     panel('Настройки', body => {
-      description(body, 'S Videos + · 0.1.0-alpha.3');
-      option(body, 'Резервный публичный прокси: ' + (app.Settings.get('public_proxy', false) ? 'Включён' : 'Выключен'), () => { app.Settings.set('public_proxy', !app.Settings.get('public_proxy', false)); settingsPanel(); });
-      description(body, 'Прокси — внешний сервис для публичных каталогов. По умолчанию выключен. Cookie аккаунта через него не передаются.');
+      description(body, 'S Videos + · 0.1.0-alpha.4');
+      const proxyEnabled = app.Settings.get('public_proxy', true);
+      const proxyName = proxyEnabled ? (app.Settings.get('proxy_mode', 'auto') === 'force' ? 'Принудительно' : 'Авто') : 'Выключены';
+      option(body, 'Прокси: ' + proxyName + '  ›', proxyPanel);
+      description(body, 'Прокси применяется к публичным страницам, превью и потокам. Cookie аккаунта сторонним прокси не передаются.');
       ['stripchat', 'chaturbate'].forEach(id => option(body, 'Аккаунт ' + app.getAdapter(id).getName() + '  ›', () => accountPanel(id)));
       option(body, 'Очистить кэш каталогов', () => { app.Api.cache.clear(); toast('Кэш очищен'); });
       option(body, 'О приложении', () => panel('S Videos +', panelBody => description(panelBody, 'Отдельное приложение Android TV. Восемь независимых адаптеров, интерфейс Calm и нативный плеер Media3. Данные сайтов могут изменяться. Исходники плагина Lampa не изменяются.'), settingsPanel));
     });
+  }
+  function proxyPanel() {
+    panel('Сеть и прокси', body => {
+      description(body, 'Авто: сначала прямой запрос, при ошибке — резервный. Принудительно: сразу через свой прокси или Cherry. Для потоков обрабатываются также HLS-сегменты и ключи.');
+      const setMode = mode => { app.Settings.set('public_proxy', mode !== 'off'); app.Settings.set('proxy_mode', mode === 'force' ? 'force' : 'auto'); app.Api.cache.clear(); proxyPanel(); };
+      const enabled = app.Settings.get('public_proxy', true), forced = app.Settings.get('proxy_mode', 'auto') === 'force';
+      option(body, 'Автоматический резерв', () => setMode('auto'), enabled && !forced);
+      option(body, 'Принудительно через прокси', () => setMode('force'), enabled && forced);
+      option(body, 'Без сторонних прокси', () => setMode('off'), !enabled);
+      const label = document.createElement('label'); label.className = 'field-label'; label.textContent = 'Свой HTTPS-прокси (необязательно)'; body.appendChild(label);
+      const input = document.createElement('textarea'); input.setAttribute('aria-label', 'Свой HTTPS-прокси'); input.value = app.Settings.get('proxy_url', ''); input.placeholder = 'https://your-proxy.example/?url={url}&referer={referer}'; input.spellcheck = false; body.appendChild(input);
+      option(body, 'Сохранить адрес прокси', () => {
+        const value = input.value.trim();
+        if (value) { try { const url = new URL(value.replace('{url}', encodeURIComponent('https://example.com/')).replace('{referer}', '')); if (url.protocol !== 'https:' || url.username || url.password) throw new Error(); } catch (error) { return toast('Нужен корректный HTTPS-адрес без логина и пароля'); } }
+        app.Settings.set('proxy_url', value); app.Api.cache.clear(); toast('Адрес прокси сохранён'); proxyPanel();
+      });
+      description(body, 'Сначала используется ваш адрес, затем встроенный Cherry. Если сайт блокирует оба маршрута, нужен другой доступный прокси или сеть.');
+    }, settingsPanel);
   }
   function accountPanel(id) {
     const adapter = app.getAdapter(id);
@@ -182,7 +205,7 @@
       if (token !== playVersion) return;
       const streams = Object.fromEntries(Object.entries(video.streams || {}).filter(([, url]) => typeof url === 'string' && /^https:\/\//i.test(url)));
       if (!Object.keys(streams).length) { videoMenu(item, index); throw new Error('Прямой поток недоступен. Можно открыть страницу источника.'); }
-      await native.call('play', { title: video.title || item.title, streams, headers: video.headers || {} });
+      await native.call('play', { title: video.title || item.title, streams, mimeType: video.mimeType || '', headers: video.headers || {} });
       playing = true; playIndex = index;
     } catch (error) { toast(error.message || 'Не удалось открыть видео'); }
     finally { if (token === playVersion) { playBusy = false; $('busy-text').textContent = 'Загрузка…'; $('busy').hidden = !model.state.busy; } }

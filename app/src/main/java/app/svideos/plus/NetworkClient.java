@@ -28,7 +28,19 @@ final class NetworkClient {
         return url;
     }
 
+    static final class Response {
+        final byte[] bytes;
+        final String contentType;
+        Response(byte[] bytes, String contentType) { this.bytes = bytes; this.contentType = contentType == null ? "application/octet-stream" : contentType; }
+    }
     static String request(JSONObject data) throws Exception {
+        Response response = requestBytes(data);
+        Charset charset = StandardCharsets.UTF_8;
+        Matcher match = Pattern.compile("charset=[\"']?([^;\\s\"']+)", Pattern.CASE_INSENSITIVE).matcher(response.contentType);
+        if (match.find()) { try { charset = Charset.forName(match.group(1)); } catch (Exception ignored) {} }
+        return new String(response.bytes, charset);
+    }
+    static Response requestBytes(JSONObject data) throws Exception {
         URL current = checked(data.getString("url"));
         URL original = current;
         JSONObject headers = data.optJSONObject("headers");
@@ -45,10 +57,11 @@ final class NetworkClient {
             HttpURLConnection connection = (HttpURLConnection) current.openConnection();
             try {
                 connection.setInstanceFollowRedirects(false);
-                connection.setConnectTimeout(15000);
-                connection.setReadTimeout(15000);
+                int timeout = Math.max(3000, Math.min(20000, data.optInt("timeout", 10000)));
+                connection.setConnectTimeout(timeout);
+                connection.setReadTimeout(timeout);
                 connection.setRequestMethod(method);
-                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 11) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+                connection.setRequestProperty("User-Agent", ProxyPolicy.USER_AGENT);
                 names = headers.keys();
                 while (names.hasNext()) {
                     String name = names.next(), value = headers.optString(name);
@@ -80,11 +93,7 @@ final class NetworkClient {
                         output.write(buffer, 0, count);
                     }
                 }
-                Charset charset = StandardCharsets.UTF_8;
-                String contentType = connection.getContentType();
-                Matcher match = Pattern.compile("charset=[\"']?([^;\\s\"']+)", Pattern.CASE_INSENSITIVE).matcher(contentType == null ? "" : contentType);
-                if (match.find()) { try { charset = Charset.forName(match.group(1)); } catch (Exception ignored) {} }
-                return new String(output.toByteArray(), charset);
+                return new Response(output.toByteArray(), connection.getContentType());
             } finally { connection.disconnect(); }
         }
         throw new HttpError("Слишком много перенаправлений", 0);

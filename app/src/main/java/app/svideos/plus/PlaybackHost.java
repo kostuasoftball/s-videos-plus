@@ -36,6 +36,7 @@ final class PlaybackHost {
     private final Activity activity;
     private final FrameLayout layer;
     private final Events events;
+    private final SecureStore store;
     private final PlayerView playerView;
     private final TextView title;
     private final Button previous;
@@ -44,8 +45,8 @@ final class PlaybackHost {
     private String quality = "";
     private boolean firstOpen;
 
-    PlaybackHost(Activity activity, FrameLayout root, Events events) {
-        this.activity = activity; this.events = events;
+    PlaybackHost(Activity activity, FrameLayout root, Events events, SecureStore store) {
+        this.activity = activity; this.events = events; this.store = store;
         layer = new FrameLayout(activity); layer.setBackgroundColor(Color.BLACK); layer.setVisibility(View.GONE);
         root.addView(layer, new FrameLayout.LayoutParams(-1, -1));
         playerView = new PlayerView(activity); playerView.setUseController(true);
@@ -76,7 +77,7 @@ final class PlaybackHost {
 
     void play(JSONObject value) throws Exception {
         JSONObject streams = value.getJSONObject("streams");
-        String selected = streams.has("original") ? "original" : streams.has("HLS") ? "HLS" : streams.keys().next();
+        String selected = streams.has("720p") ? "720p" : streams.has("480p") ? "480p" : streams.has("HLS") ? "HLS" : streams.has("original") ? "original" : streams.keys().next();
         video = value; quality = selected; title.setText(value.optString("title", "S Videos +"));
         firstOpen = !visible();
         load(streams.getString(selected), 0);
@@ -93,17 +94,28 @@ final class PlaybackHost {
             Iterator<String> keys = sourceHeaders.keys();
             while (keys.hasNext()) { String key = keys.next(), content = sourceHeaders.optString(key); if (key.matches("[a-zA-Z0-9-]+") && !content.contains("\r") && !content.contains("\n")) headers.put(key, content); }
         }
-        DefaultHttpDataSource.Factory dataSource = new DefaultHttpDataSource.Factory().setDefaultRequestProperties(headers)
-            .setConnectTimeoutMs(15000).setReadTimeoutMs(20000).setAllowCrossProtocolRedirects(false);
+        RoutedDataSource.Factory dataSource = new RoutedDataSource.Factory(new ProxyPolicy(new JSONObject(store.read())), headers);
         if (player != null) { playerView.setPlayer(null); player.release(); }
         player = new ExoPlayer.Builder(activity).setMediaSourceFactory(new DefaultMediaSourceFactory(dataSource)).build();
         player.setAudioAttributes(new AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(), true);
         player.setHandleAudioBecomingNoisy(true);
         player.addListener(new Player.Listener() {
-            @Override public void onPlayerError(PlaybackException error) { events.send("playerError", "Ошибка потока: " + error.getErrorCodeName()); }
+            @Override public void onPlayerError(PlaybackException error) {
+                String detail = error.getErrorCodeName();
+                Throwable cause = error;
+                for (int i = 0; cause != null && i < 8; i++, cause = cause.getCause()) {
+                    if (cause instanceof androidx.media3.datasource.HttpDataSource.InvalidResponseCodeException) {
+                        detail += " (HTTP " + ((androidx.media3.datasource.HttpDataSource.InvalidResponseCodeException) cause).responseCode + ")"; break;
+                    }
+                }
+                events.send("playerError", "Ошибка потока: " + detail + ". Попробуйте принудительный прокси в настройках.");
+            }
             @Override public void onPlaybackStateChanged(int state) { if (state == Player.STATE_ENDED) events.send("next", ""); }
         });
-        playerView.setPlayer(player); player.setMediaItem(MediaItem.fromUri(url));
+        playerView.setPlayer(player);
+        MediaItem.Builder item = new MediaItem.Builder().setUri(url);
+        if (!video.optString("mimeType").isEmpty()) item.setMimeType(video.optString("mimeType"));
+        player.setMediaItem(item.build());
         if (position > 0) player.seekTo(position);
         player.prepare(); player.setPlayWhenReady(true);
         layer.setKeepScreenOn(true);

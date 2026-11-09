@@ -35,7 +35,7 @@ jobs:
         env:
           SVIDEOS_KEYSTORE: ${{ runner.temp }}/svideos.p12
           SVIDEOS_STORE_PASSWORD: ${{ secrets.SVIDEOS_STORE_PASSWORD }}
-        run: gradle --no-daemon assembleRelease lintRelease
+        run: gradle --no-daemon testReleaseUnitTest assembleRelease lintRelease
       - name: Verify APK signature
         run: $ANDROID_HOME/build-tools/35.0.0/apksigner verify --verbose app/build/outputs/apk/release/app-release.apk
       - name: Enable hardware acceleration for release smoke test
@@ -68,4 +68,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           cp app/build/outputs/apk/release/app-release.apk S-Videos-Plus.apk
-          gh release create "$GITHUB_REF_NAME" S-Videos-Plus.apk --prerelease --title "S Videos + ${GITHUB_REF_NAME}" --notes "Первая подписанная alpha для Android TV. Каталог, поиск, фильтры, D-pad и нативный Media3-плеер. Доступность сайтов зависит от сети и защиты самих источников. Требуется проверка на физическом ТВ."
+          gh release create "$GITHUB_REF_NAME" S-Videos-Plus.apk --prerelease --title "S Videos + ${GITHUB_REF_NAME}" --notes "Исправления сети и медиа: нативная загрузка превью, автоматический/принудительный прокси для каталогов и всех HLS-запросов, собственный HTTPS-прокси, резервное разрешение публичного потока Chaturbate. Cookie сторонним прокси не передаются. Блокировки площадок могут сохраняться."

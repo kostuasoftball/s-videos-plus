@@ -157,6 +157,7 @@
 
       return {
         title: username || 'Stripchat',
+        mimeType: 'application/x-mpegURL',
         poster: model ? (model.snapshotUrl || model.avatarUrl || '') : (item.poster || ''),
         streams,
         webpageUrl: item.webpageUrl || (username ? `${SITE_URL}/${encodeURIComponent(username)}` : SITE_URL),
