@@ -31,6 +31,7 @@ public final class MainActivity extends Activity {
     private SecureStore store;
     private ImageLoader images;
     private PlaybackHost playback;
+    private AppUpdater updater;
     private volatile boolean destroyed;
     private final ThreadPoolExecutor network = new ThreadPoolExecutor(4, 4, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<>(32));
 
@@ -39,6 +40,7 @@ public final class MainActivity extends Activity {
         super.onCreate(saved);
         getWindow().getDecorView().setSystemUiVisibility(5894);
         store = new SecureStore(this);
+        updater = new AppUpdater(this);
         images = new ImageLoader(store);
         FrameLayout root = new FrameLayout(this); setContentView(root);
         web = new WebView(this); root.addView(web, new FrameLayout.LayoutParams(-1, -1));
@@ -131,6 +133,8 @@ public final class MainActivity extends Activity {
                         try { result(id, true, NetworkClient.request(data), 200); }
                         catch (Exception error) { result(id, false, error.getMessage() == null ? "Ошибка сети" : error.getMessage(), error instanceof NetworkClient.HttpError ? ((NetworkClient.HttpError) error).status : 0); }
                     });
+                } else if (method.equals("checkUpdates")) {
+                    runOnUiThread(() -> { updater.check(); result(id, true, true, 0); });
                 } else if (method.equals("play")) {
                     runOnUiThread(() -> { try { playback.play(data); result(id, true, true, 0); } catch (Exception error) { result(id, false, "Плеер не смог открыть поток", 0); } });
                 } else if (method.equals("openPage")) {
@@ -147,8 +151,10 @@ public final class MainActivity extends Activity {
     @Override public void onBackPressed() { if (playback.visible()) playback.close(); else event("back", ""); }
     @Override protected void onStop() { super.onStop(); playback.pause(); web.onPause(); }
     @Override protected void onStart() { super.onStart(); if (web != null) web.onResume(); }
+    @Override protected void onResume() { super.onResume(); if (updater != null) updater.resume(); }
     @Override protected void onDestroy() {
         destroyed = true; network.shutdownNow();
+        if (updater != null) updater.close();
         if (playback != null) playback.release();
         if (web != null) { web.removeJavascriptInterface("SVideosAndroid"); web.destroy(); }
         super.onDestroy();

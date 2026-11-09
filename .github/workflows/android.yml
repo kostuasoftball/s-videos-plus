@@ -68,4 +68,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           cp app/build/outputs/apk/release/app-release.apk S-Videos-Plus.apk
-          gh release create "$GITHUB_REF_NAME" S-Videos-Plus.apk --prerelease --title "S Videos + ${GITHUB_REF_NAME}" --notes "Исправления сети и медиа: нативная загрузка превью, автоматический/принудительный прокси для каталогов и всех HLS-запросов, собственный HTTPS-прокси, резервное разрешение публичного потока Chaturbate. Cookie сторонним прокси не передаются. Блокировки площадок могут сохраняться."
+          node scripts/release-metadata.cjs S-Videos-Plus.apk
+          gh release create "$GITHUB_REF_NAME" S-Videos-Plus.apk update.json --prerelease --title "S Videos + ${GITHUB_REF_NAME}" --notes "Настройки зеркал, резервные маршруты превью и HLS, обновление из приложения с проверкой SHA-256 и подписи APK. Android запрашивает подтверждение установки. Проверены каталоги, превью и публичные плейлисты семи источников кроме eFukt. Pornhub остаётся нестабильным: возможны HTTP 410 и таймауты."

@@ -10,7 +10,7 @@
 
 ## Установка
 
-**[Скачать APK 0.1.0-alpha.3](https://github.com/kostuasoftball/s-videos-plus/releases/download/v0.1.0-alpha.3/S-Videos-Plus.apk)**
+**[Скачать APK 0.1.0-alpha.4](https://github.com/kostuasoftball/s-videos-plus/releases/download/v0.1.0-alpha.4/S-Videos-Plus.apk)**
 · [Инструкция установки](INSTALL.md)
 
 Устанавливается **APK**, а не JavaScript-ссылкой в Lampa. Lampa для запуска не нужна.
@@ -21,6 +21,9 @@ APK подписывается отдельным постоянным ключ�
 
 ## Что реализовано
 
+- Настройки → Зеркала: сохранение предпочтительного адреса или автоматический резерв для шести поддерживаемых источников.
+- Настройки → Проверить обновления: GitHub Releases, скачивание APK, проверка SHA-256, пакета, версии и подписи, затем системный установщик. Тихая установка без подтверждения Android не поддерживается.
+- Актуальные результаты проверки семи источников и 33 адресов: [reports/](reports/README.md). Pornhub остаётся нестабильным.
 - Независимая копия восьми адаптеров: Pornhub, Xvideos, Xhamster, eFukt, BongaCams,
   Runetki, Chaturbate, Stripchat.
 - Каталог, пагинация, поиск, категории, фильтры источников.

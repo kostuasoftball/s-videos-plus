@@ -17,6 +17,7 @@
       super(id);
       this.config = config;
       this.models = new Map();
+      app.Api.registerMirrors(this.id, config.hosts || [config.host]);
     }
     getName() { return this.config.name; }
     getCapabilities() { return {}; }
@@ -50,12 +51,8 @@
     }
     async requestListingPage(category, offset, limit, country = '') {
       const url = this.listingPage(category, offset, limit, country);
-      let html = await app.Api.siteText(url, { referer: `${this.config.host}/`, retries: 0 });
-      let data = this.parseListingPage(html);
-      if (!data) {
-        html = await app.Api.siteText(url, { referer: `${this.config.host}/`, proxy: 'always', retries: 0 });
-        data = this.parseListingPage(html);
-      }
+      const resolved = await app.Api.publicText(url, this.config.hosts || [this.config.host], { validate: html => !!this.parseListingPage(html) });
+      let data = this.parseListingPage(resolved.text);
       if (!data) throw new Error(`${this.getName()} не вернул каталог ни через API, ни через страницу`);
       if (country) data.models.forEach((model) => { model._sisiplusCountry = country; });
       return data;
@@ -69,9 +66,10 @@
       const headers = { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' };
       return app.Api.cached(`${this.id}:${url}`, async () => {
         try {
-          const data = await app.Api.siteJson(url.href, {
-            referer: `${this.config.host}/`, headers, retries: 0
+          const resolved = await app.Api.publicJson(url.href, this.config.hosts || [this.config.host], {
+            headers, validateData: data => !!data && Array.isArray(data.models) && data.models.length > 0
           });
+          const data = resolved.data;
           if (data && Array.isArray(data.models) && data.models.length) {
             if (country) data.models.forEach((model) => { model._sisiplusCountry = country; });
             return data;
@@ -131,7 +129,7 @@
       return Promise.resolve({
         title: item.title || username || this.getName(), poster: item.poster || '',
         streams: stream ? { HLS: stream } : {}, webpageUrl: item.webpageUrl || `${this.config.roomBase}/${encodeURIComponent(username)}`,
-        headers: { Referer: `${this.config.host}/` }
+        mimeType: 'application/x-mpegURL', headers: { Referer: `${this.config.host}/`, Origin: this.config.host }
       });
     }
   }

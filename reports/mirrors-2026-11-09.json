@@ -1,0 +1,1142 @@
+{
+  "checkedAt": "2026-11-09T09:48:36.918Z",
+  "scope": "Seven sources and 33 identified public origins; eFukt explicitly excluded",
+  "results": [
+    {
+      "source": "bongacams",
+      "origin": "https://bongacams.com",
+      "routes": {
+        "direct": {
+          "status": 200,
+          "landedHost": "bongacams.com",
+          "type": "application/json",
+          "bytes": 22680,
+          "models": 72,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherryHome": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "bongacams",
+      "origin": "https://ee.bongacams.com",
+      "routes": {
+        "direct": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "directHome": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherryHome": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "bongacams",
+      "origin": "https://ukr.bongacams.com",
+      "routes": {
+        "direct": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "directHome": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherryHome": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "chaturbate",
+      "origin": "https://chaturbate.com",
+      "routes": {
+        "direct": {
+          "error": "ECONNRESET",
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "chaturbate",
+      "origin": "https://chaturbate.eu",
+      "routes": {
+        "direct": {
+          "error": "ECONNRESET",
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "chaturbate",
+      "origin": "https://chaturbate.global",
+      "routes": {
+        "direct": {
+          "error": "ECONNRESET",
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "pornhub",
+      "origin": "https://www.pornhub.com",
+      "routes": {
+        "direct": {
+          "status": 200,
+          "landedHost": "rt.pornhub.org",
+          "type": "application/json; charset=utf-8",
+          "bytes": 167471,
+          "models": 0,
+          "videos": 30,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 200,
+          "landedHost": "cherry-proxy.aawersom.workers.dev",
+          "type": "application/json; charset=utf-8",
+          "bytes": 168175,
+          "models": 0,
+          "videos": 30,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "pornhub",
+      "origin": "https://www.pornhub.net",
+      "routes": {
+        "direct": {
+          "status": 200,
+          "landedHost": "www.pornhub.net",
+          "type": "application/json; charset=utf-8",
+          "bytes": 168333,
+          "models": 0,
+          "videos": 30,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 200,
+          "landedHost": "cherry-proxy.aawersom.workers.dev",
+          "type": "application/json; charset=utf-8",
+          "bytes": 168367,
+          "models": 0,
+          "videos": 30,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "pornhub",
+      "origin": "https://www.pornhub.org",
+      "routes": {
+        "direct": {
+          "status": 200,
+          "landedHost": "rt.pornhub.org",
+          "type": "application/json; charset=utf-8",
+          "bytes": 168559,
+          "models": 0,
+          "videos": 30,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 200,
+          "landedHost": "cherry-proxy.aawersom.workers.dev",
+          "type": "application/json; charset=utf-8",
+          "bytes": 168015,
+          "models": 0,
+          "videos": 30,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "runetki",
+      "origin": "https://rt.runetki.com",
+      "routes": {
+        "direct": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "directHome": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherryHome": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "runetki",
+      "origin": "https://rt.runetki5.com",
+      "routes": {
+        "direct": {
+          "error": "ECONNRESET",
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "directHome": {
+          "error": "ECONNRESET",
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherryHome": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "runetki",
+      "origin": "https://ru.runetki.com",
+      "routes": {
+        "direct": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "directHome": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherryHome": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "runetki",
+      "origin": "https://ru6.runetki6.com",
+      "routes": {
+        "direct": {
+          "error": "ECONNRESET",
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "directHome": {
+          "error": "ECONNRESET",
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherryHome": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "runetki",
+      "origin": "https://runetki.com",
+      "routes": {
+        "direct": {
+          "error": "ECONNRESET",
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "directHome": {
+          "error": "ECONNRESET",
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherryHome": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "runetki",
+      "origin": "https://runetki12.com",
+      "routes": {
+        "direct": {
+          "status": 200,
+          "landedHost": "runetki12.com",
+          "type": "application/json",
+          "bytes": 22716,
+          "models": 72,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 200,
+          "landedHost": "cherry-proxy.aawersom.workers.dev",
+          "type": "application/json",
+          "bytes": 4,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherryHome": {
+          "status": 200,
+          "landedHost": "cherry-proxy.aawersom.workers.dev",
+          "type": "text/html; charset=utf-8",
+          "bytes": 351137,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": true,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "runetki",
+      "origin": "https://runetki5.com",
+      "routes": {
+        "direct": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "directHome": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherryHome": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "runetki",
+      "origin": "https://rus.runetki5.com",
+      "routes": {
+        "direct": {
+          "error": "ECONNRESET",
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "directHome": {
+          "error": "ECONNRESET",
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherryHome": {
+          "status": 403,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "stripchat",
+      "origin": "https://ru.stripchat.com",
+      "routes": {
+        "direct": {
+          "error": "ECONNRESET",
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 200,
+          "landedHost": "cherry-proxy.aawersom.workers.dev",
+          "type": "text/html; charset=utf-8",
+          "bytes": 373260,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "stripchat",
+      "origin": "https://stripchat.com",
+      "routes": {
+        "direct": {
+          "error": "ECONNRESET",
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 200,
+          "landedHost": "cherry-proxy.aawersom.workers.dev",
+          "type": "text/html; charset=utf-8",
+          "bytes": 373148,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "stripchat",
+      "origin": "https://superchat.live",
+      "routes": {
+        "direct": {
+          "status": 406,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 200,
+          "landedHost": "cherry-proxy.aawersom.workers.dev",
+          "type": "text/html; charset=utf-8",
+          "bytes": 354128,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "xhamster",
+      "origin": "https://xhamster.com",
+      "routes": {
+        "direct": {
+          "error": "ECONNRESET",
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 503,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "xhamster",
+      "origin": "https://xhamster.desi",
+      "routes": {
+        "direct": {
+          "status": 200,
+          "landedHost": "xhamster.desi",
+          "type": "text/html; charset=UTF-8",
+          "bytes": 356802,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": true,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 503,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "xhamster",
+      "origin": "https://xhamster.one",
+      "routes": {
+        "direct": {
+          "status": 200,
+          "landedHost": "xhamster.one",
+          "type": "text/html; charset=UTF-8",
+          "bytes": 85101,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 200,
+          "landedHost": "cherry-proxy.aawersom.workers.dev",
+          "type": "text/html; charset=UTF-8",
+          "bytes": 85101,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "xhamster",
+      "origin": "https://xhamster11.com",
+      "routes": {
+        "direct": {
+          "error": "ECONNRESET",
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 200,
+          "landedHost": "cherry-proxy.aawersom.workers.dev",
+          "type": "text/html; charset=utf-8",
+          "bytes": 6990,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "xhamster",
+      "origin": "https://xhamster2.com",
+      "routes": {
+        "direct": {
+          "error": "ECONNRESET",
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 503,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "xhamster",
+      "origin": "https://xhamster20.desi",
+      "routes": {
+        "direct": {
+          "status": 200,
+          "landedHost": "xhamster.desi",
+          "type": "text/html; charset=UTF-8",
+          "bytes": 356507,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": true,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 503,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "xhamster",
+      "origin": "https://xhamster26.com",
+      "routes": {
+        "direct": {
+          "status": 200,
+          "landedHost": "xhamster26.com",
+          "type": "text/html; charset=utf-8",
+          "bytes": 476,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 200,
+          "landedHost": "cherry-proxy.aawersom.workers.dev",
+          "type": "text/html; charset=utf-8",
+          "bytes": 476,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "xhamster",
+      "origin": "https://xhday.com",
+      "routes": {
+        "direct": {
+          "error": "The operation was aborted due to timeout",
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 200,
+          "landedHost": "cherry-proxy.aawersom.workers.dev",
+          "type": "text/html",
+          "bytes": 5616,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "xhamster",
+      "origin": "https://xhms.pro",
+      "routes": {
+        "direct": {
+          "status": 200,
+          "landedHost": "www.google.com",
+          "type": "text/html; charset=UTF-8",
+          "bytes": 217034,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 503,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "xhamster",
+      "origin": "https://xhvid.com",
+      "routes": {
+        "direct": {
+          "error": "ECONNRESET",
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 503,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "xvideos",
+      "origin": "https://www.xvideos.com",
+      "routes": {
+        "direct": {
+          "error": "ECONNRESET",
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 200,
+          "landedHost": "cherry-proxy.aawersom.workers.dev",
+          "type": "text/html; charset=UTF-8",
+          "bytes": 83,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "xvideos",
+      "origin": "https://www.xvideos.es",
+      "routes": {
+        "direct": {
+          "status": 200,
+          "landedHost": "www.xvideos.es",
+          "type": "text/html; charset=utf-8",
+          "bytes": 131712,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 47,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 200,
+          "landedHost": "cherry-proxy.aawersom.workers.dev",
+          "type": "text/html; charset=utf-8",
+          "bytes": 133244,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 48,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    },
+    {
+      "source": "xvideos",
+      "origin": "https://www.xvideos2.com",
+      "routes": {
+        "direct": {
+          "error": "ECONNRESET",
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 0,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        },
+        "cherry": {
+          "status": 200,
+          "landedHost": "cherry-proxy.aawersom.workers.dev",
+          "type": "text/html; charset=utf-8",
+          "bytes": 140511,
+          "models": 0,
+          "videos": 0,
+          "hasPublicHls": false,
+          "thumbs": 48,
+          "initials": false,
+          "listingConfig": false,
+          "challenge": false
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "checkedAt": "2026-11-09T09:46:01.621Z",
+  "proxyEnabled": true,
+  "results": [
+    {
+      "source": "runetki",
+      "cards": 72,
+      "ok": true,
+      "previewChecks": [
+        {
+          "http": 200,
+          "image": true
+        }
+      ],
+      "streamChecks": [
+        {
+          "streamQualities": [
+            "HLS"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true
+        },
+        {
+          "streamQualities": [
+            "HLS"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true
+        },
+        {
+          "streamQualities": [
+            "HLS"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true
+        }
+      ]
+    }
+  ]
+}

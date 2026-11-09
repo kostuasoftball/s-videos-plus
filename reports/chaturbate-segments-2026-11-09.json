@@ -1,0 +1,85 @@
+{
+  "checkedAt": "2026-11-09T10:00:28.444Z",
+  "proxyEnabled": true,
+  "results": [
+    {
+      "source": "chaturbate",
+      "cards": 83,
+      "ok": true,
+      "previewChecks": [
+        {
+          "http": 200,
+          "image": true
+        }
+      ],
+      "streamChecks": [
+        {
+          "streamQualities": [
+            "HLS"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true,
+          "playlistChecks": [
+            {
+              "host": "edge1-rtm.live.mmcdn.com",
+              "http": 200,
+              "proxied": false
+            },
+            {
+              "host": "edge1-rtm.live.mmcdn.com",
+              "http": 200,
+              "proxied": false
+            }
+          ],
+          "segmentHttp": 200,
+          "segmentBytes": 671,
+          "segmentAvailable": true
+        },
+        {
+          "streamQualities": [
+            "HLS"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true,
+          "playlistChecks": [
+            {
+              "host": "edge17-rtm.live.mmcdn.com",
+              "http": 200,
+              "proxied": false
+            },
+            {
+              "host": "edge17-rtm.live.mmcdn.com",
+              "http": 200,
+              "proxied": false
+            }
+          ],
+          "segmentHttp": 200,
+          "segmentBytes": 671,
+          "segmentAvailable": true
+        },
+        {
+          "streamQualities": [
+            "HLS"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true,
+          "playlistChecks": [
+            {
+              "host": "edge23-rtm.live.mmcdn.com",
+              "http": 200,
+              "proxied": false
+            },
+            {
+              "host": "edge23-rtm.live.mmcdn.com",
+              "http": 200,
+              "proxied": false
+            }
+          ],
+          "segmentHttp": 200,
+          "segmentBytes": 671,
+          "segmentAvailable": true
+        }
+      ]
+    }
+  ]
+}

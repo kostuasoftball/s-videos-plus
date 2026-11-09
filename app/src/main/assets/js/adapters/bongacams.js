@@ -5,7 +5,7 @@
   class BongaCamsAdapter extends Base {
     constructor() {
       super('bongacams', {
-        name: 'BongaCams', host: 'https://ukr.bongacams.com', roomBase: 'https://bongacams.com',
+        name: 'BongaCams', host: 'https://ukr.bongacams.com', hosts: ['https://bongacams.com', 'https://ukr.bongacams.com', 'https://ee.bongacams.com'], roomBase: 'https://bongacams.com',
         stream: (edge, username) => `https://${edge}.bcvcdn.com/hls/stream_${username}/public-aac/stream_${username}/chunks.m3u8`
       });
     }

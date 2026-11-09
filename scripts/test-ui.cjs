@@ -39,6 +39,19 @@ catch { ({ chromium } = require('C:/Users/matyugin/.cache/codex-runtimes/codex-p
     await page.keyboard.press('Escape');
     assert.equal(await page.locator('#modal-layer').isHidden(), true);
     await page.locator('#settings').click();
+    assert.equal(await page.getByRole('button', { name: 'Проверить обновления', exact: true }).count(), 1);
+    await page.getByRole('button', { name: 'Зеркала  ›', exact: true }).click();
+    await page.getByRole('button', { name: /^Xvideos:/ }).click();
+    await page.getByRole('button', { name: 'www.xvideos.es', exact: true }).click();
+    assert.equal(await page.locator('.option.selected').textContent(), 'www.xvideos.es');
+    assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('svideos_settings')).mirror_xvideos), 'https://www.xvideos.es');
+    await page.reload(); await page.locator('.card').first().waitFor();
+    await page.locator('#settings').click();
+    await page.getByRole('button', { name: 'Зеркала  ›', exact: true }).click();
+    await page.getByRole('button', { name: /^Xvideos: www.xvideos.es/ }).click();
+    assert.equal(await page.locator('.option.selected').textContent(), 'www.xvideos.es');
+    await page.getByRole('button', { name: 'Автоматически', exact: true }).click();
+    await page.keyboard.press('Escape'); await page.keyboard.press('Escape');
     await page.getByRole('button', { name: 'Аккаунт Stripchat  ›' }).click();
     assert.equal(await page.getByRole('textbox', { name: 'Cookie' }).count(), 1);
     await page.keyboard.press('Escape'); await page.keyboard.press('Escape');
@@ -52,6 +65,6 @@ catch { ({ chromium } = require('C:/Users/matyugin/.cache/codex-runtimes/codex-p
     await page.locator('#filters').click(); await page.getByRole('button', { name: 'Страна / национальность  ›' }).click();
     await page.screenshot({ path: path.join(__dirname, '../test-results/countries.png') });
     assert.deepEqual(errors, []);
-    console.log('PASS: four columns, D-pad rows and right-edge filters, country headings, search/back, account settings, source switching. No JS runtime errors.');
+    console.log('PASS: four columns, D-pad rows and right-edge filters, country headings, search/back, accounts, mirror selection/persistence/reset/back, source switching. No JS runtime errors.');
   } finally { if (browser) await browser.close(); await new Promise(resolve => server.close(resolve)); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

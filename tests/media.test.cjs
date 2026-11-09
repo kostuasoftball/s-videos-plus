@@ -43,7 +43,7 @@ test('custom proxy precedes Cherry, and disabled mode keeps public requests dire
   const ctx = context({ fetch: async url => { urls.push(url); if (new URL(url).hostname === 'cherry-proxy.aawersom.workers.dev') return new Response('ok'); throw new Error('blocked'); } });
   ctx.SisiPlus.Settings.set('proxy_url', 'https://my-proxy.example/?url={url}&referer={referer}');
   ctx.SisiPlus.Settings.set('proxy_mode', 'force');
-  assert.equal(await ctx.SisiPlus.Api.siteText('https://source.example/'), 'ok');
+  assert.equal(await ctx.SisiPlus.Api.siteText('https://source.example/', { proxy: 'always' }), 'ok');
   assert.deepEqual(urls.map(url => new URL(url).hostname), ['my-proxy.example', 'cherry-proxy.aawersom.workers.dev']);
   urls.length = 0; ctx.SisiPlus.Settings.set('public_proxy', false);
   await assert.rejects(ctx.SisiPlus.Api.siteText('https://source.example/'));
@@ -70,6 +70,86 @@ test('Chaturbate does not try fallback APIs to unlock non-public rooms', async (
   vm.runInContext(fs.readFileSync(path.join(root, 'adapters/chaturbate.js'), 'utf8'), ctx);
   await assert.rejects(adapter.getVideo('private_room'), /публично/); assert.equal(calls, 1);
 });
+test('mirror fallback rejects empty catalog responses and remembers the valid origin', async () => {
+  const urls = [];
+  const ctx = context({ fetch: async url => {
+    urls.push(url);
+    return new Response(new URL(url).hostname === 'mirror.example' ? '{"items":[1]}' : '{"items":[]}');
+  } });
+  ctx.SisiPlus.Settings.set('public_proxy', false);
+  const origins = ['https://source.example', 'https://mirror.example'];
+  const options = { validateData: data => Array.isArray(data.items) && data.items.length > 0 };
+  const first = await ctx.SisiPlus.Api.publicJson(origins[0] + '/list?page=2', origins, options);
+  assert.equal(first.origin, origins[1]);
+  assert.equal(urls.length, 2);
+  urls.length = 0;
+  await ctx.SisiPlus.Api.publicJson(origins[0] + '/list?page=3', origins, options);
+  assert.deepEqual(urls, [origins[1] + '/list?page=3']);
+});
+
+test('account requests never migrate to a mirror or third-party proxy', async () => {
+  const urls = [];
+  const ctx = context({ fetch: async url => { urls.push(url); throw new Error('blocked'); } });
+  await assert.rejects(ctx.SisiPlus.Api.publicJson('https://source.example/account', ['https://source.example', 'https://mirror.example'], { headers: { Cookie: 'private=test' } }));
+  assert.deepEqual(urls, ['https://source.example/account']);
+});
+
+test('media force mode does not suppress direct public mirrors', async () => {
+  const urls = [];
+  const ctx = context({ fetch: async url => { urls.push(url); return new Response('{"ok":true}'); } });
+  ctx.SisiPlus.Settings.set('proxy_mode', 'force');
+  await ctx.SisiPlus.Api.publicJson('https://mirror.example/context', ['https://mirror.example']);
+  assert.deepEqual(urls, ['https://mirror.example/context']);
+});
+
+test('manual mirror is persisted, preferred over remembered origins and still has fallback', async () => {
+  const urls = [];
+  const ctx = context({ fetch: async url => {
+    urls.push(url);
+    if (new URL(url).hostname === 'mirror.example') throw new Error('blocked');
+    return new Response('ok');
+  } });
+  const api = ctx.SisiPlus.Api, origins = ['https://source.example', 'https://mirror.example'];
+  ctx.SisiPlus.Settings.set('public_proxy', false);
+  api.registerMirrors('sample', origins);
+  await api.publicText(origins[0] + '/list', origins);
+  api.selectMirror('sample', origins[1]); urls.length = 0;
+  assert.equal(ctx.SisiPlus.Settings.get('mirror_sample'), origins[1]);
+  assert.equal((await api.publicText(origins[0] + '/list', origins)).text, 'ok');
+  assert.deepEqual(urls, [origins[1] + '/list', origins[0] + '/list']);
+  api.selectMirror('sample', 'auto');
+  assert.equal(api.getMirrors('sample').selected, 'auto');
+  assert.throws(() => api.selectMirror('sample', 'https://unknown.example'));
+});
+
+test('changing mirror isolates pending cached requests and never moves credentials', async () => {
+  const urls = [];
+  const ctx = context({ fetch: async url => { urls.push(url); return new Response('ok'); } });
+  const api = ctx.SisiPlus.Api, origins = ['https://source.example', 'https://mirror.example'];
+  api.registerMirrors('sample', origins);
+  let finish;
+  const previous = api.cached('same-list', () => new Promise(resolve => { finish = resolve; }));
+  await Promise.resolve();
+  api.selectMirror('sample', origins[1]);
+  assert.equal(await api.cached('same-list', () => 'new-mirror'), 'new-mirror');
+  finish('old-mirror'); await previous;
+  assert.equal(await api.cached('same-list', () => 'wrong'), 'new-mirror');
+  await api.publicText(origins[0] + '/account', origins, { headers: { Cookie: 'session=test' } });
+  assert.deepEqual(urls, [origins[0] + '/account']);
+});
+
+test('Pornhub keeps distinct HLS qualities instead of overwriting all with the last URL', async () => {
+  const definitions = [720, 480, 240].map(quality => ({ quality, format: 'hls', videoUrl: `https://cdn.example/${quality}.m3u8` }));
+  const ctx = context({ fetch: async () => new Response('var flashvars_1 = ' + JSON.stringify({ mediaDefinitions: definitions }) + ';') });
+  ctx.SisiPlus.Adapter = class { constructor(id) { this.id = id; } };
+  let adapter; ctx.SisiPlus.registerAdapter = value => { adapter = value; };
+  vm.runInContext(fs.readFileSync(path.join(root, 'adapters/pornhub.js'), 'utf8'), ctx);
+  const video = await adapter.getVideo('sample');
+  assert.equal(video.streams['720p'], 'https://cdn.example/720.m3u8');
+  assert.equal(video.streams['480p'], 'https://cdn.example/480.m3u8');
+  assert.equal(video.streams['240p'], 'https://cdn.example/240.m3u8');
+});
+
 test('private worker forwards binary ranges but strips account and proxy secrets', async () => {
   const worker = (await import('../proxy/worker.mjs')).default;
   const originalFetch = global.fetch;

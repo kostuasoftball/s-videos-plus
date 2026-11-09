@@ -3,9 +3,10 @@
   const app = global.SisiPlus;
   const U = app.AdapterUtils;
   const SITE = 'https://www.xvideos.com';
+  const ORIGINS = [SITE, 'https://www.xvideos.es', 'https://www.xvideos2.com'];
 
   class XvideosAdapter extends app.Adapter {
-    constructor() { super('xvideos'); this.items = new Map(); }
+    constructor() { super('xvideos'); this.items = new Map(); app.Api.registerMirrors(this.id, ORIGINS); }
     getName() { return 'Xvideos'; }
     getCategories() {
       return Promise.resolve([
@@ -15,19 +16,19 @@
         { id: 'c/Lesbian-26', title: 'Лесбиянки', group: 'genre' }, { id: 'c/Milf-19', title: 'MILF', group: 'genre' }
       ]);
     }
-    parseCards(html) {
+    parseCards(html, origin = SITE) {
       const blocks = html.split(/<div[^>]+class="[^"]*thumb-block[^"]*"/i).slice(1);
       const output = [];
       blocks.forEach((block) => {
         const link = block.match(/href="(\/video(?:\.|-?)([a-z0-9]+)\/[^"?#]+)"/i);
         if (!link) return;
-        const webpageUrl = U.absolute(SITE, link[1]);
+        const webpageUrl = U.absolute(origin, link[1]);
         const posterMatch = block.match(/(?:data-src|src)="([^"]+\.(?:jpg|webp)[^"]*)"/i);
         const titleMatch = block.match(/<p[^>]*class="[^"]*title[^"]*"[^>]*>([\s\S]*?)<\/p>/i) || block.match(/title="([^"]+)"/i);
         const durationMatch = block.match(/class="[^"]*duration[^"]*"[^>]*>([^<]+)/i);
         const previewMatch = block.match(/data-pvv="([^"]+)"/i);
         const id = link[2];
-        const poster = posterMatch ? U.absolute(SITE, posterMatch[1].replace(/THUMBNUM/g, '1')) : '';
+        const poster = posterMatch ? U.absolute(origin, posterMatch[1].replace(/THUMBNUM/g, '1')) : '';
         const item = {
           id, title: U.stripTags(titleMatch ? titleMatch[1] : link[1].split('/').pop().replace(/_/g, ' ')),
           poster, background: poster, preview: previewMatch ? U.absolute(SITE, previewMatch[1]) : '',
@@ -39,8 +40,8 @@
       return output;
     }
     async load(url, page) {
-      const html = await app.Api.siteText(url, { referer: `${SITE}/` });
-      const items = this.parseCards(html);
+      const result = await app.Api.publicText(url, ORIGINS, { validate: (html, origin) => this.parseCards(html, origin).length > 0 });
+      const items = this.parseCards(result.text, result.origin);
       return U.result(items, page, items.length >= 15 ? page + 1 : page);
     }
     getList(category = 'new', page = 1) {
@@ -52,7 +53,8 @@
     async getVideo(id, item = {}) {
       const card = item.webpageUrl ? item : this.items.get(String(id));
       const pageUrl = card && card.webpageUrl ? card.webpageUrl : `${SITE}/video.${id}/video`;
-      const html = await app.Api.siteText(pageUrl, { referer: `${SITE}/` });
+      const resolved = await app.Api.publicText(pageUrl, ORIGINS, { validate: html => /setVideoHLS|setVideoUrlHigh|setVideoUrlLow/.test(html) });
+      const html = resolved.text;
       const streams = {};
       const hls = (html.match(/setVideoHLS\s*\(\s*['"]([^'"]+)/i) || [])[1];
       const high = (html.match(/setVideoUrlHigh\s*\(\s*['"]([^'"]+)/i) || [])[1];
@@ -60,7 +62,7 @@
       if (hls) streams.HLS = app.Api.mediaUrl(U.decodeHtml(hls), `${SITE}/`, false);
       if (high) streams.High = U.decodeHtml(high);
       if (low) streams.Low = U.decodeHtml(low);
-      return { title: card ? card.title : 'Xvideos', poster: card ? card.poster : '', streams, webpageUrl: pageUrl };
+      return { title: card ? card.title : 'Xvideos', poster: card ? card.poster : '', streams, webpageUrl: pageUrl, headers: { Referer: resolved.origin + '/', Origin: resolved.origin } };
     }
   }
   app.registerAdapter(new XvideosAdapter());

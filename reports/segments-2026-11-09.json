@@ -1,0 +1,147 @@
+{
+  "checkedAt": "2026-11-09T09:58:38.028Z",
+  "proxyEnabled": true,
+  "results": [
+    {
+      "source": "stripchat",
+      "cards": 60,
+      "ok": true,
+      "previewChecks": [
+        {
+          "http": 200,
+          "image": true
+        }
+      ],
+      "streamChecks": [
+        {
+          "streamQualities": [
+            "480p",
+            "240p",
+            "original"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true,
+          "segmentHttp": 206,
+          "segmentBytes": 1024,
+          "segmentAvailable": true
+        }
+      ]
+    },
+    {
+      "source": "chaturbate",
+      "cards": 82,
+      "ok": true,
+      "previewChecks": [
+        {
+          "http": 200,
+          "image": true
+        }
+      ],
+      "streamChecks": [
+        {
+          "streamQualities": [
+            "HLS"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true,
+          "usedMediaProxy": true,
+          "segmentHttp": 403
+        }
+      ]
+    },
+    {
+      "source": "xvideos",
+      "cards": 27,
+      "ok": true,
+      "previewChecks": [
+        {
+          "http": 200,
+          "image": true
+        }
+      ],
+      "streamChecks": [
+        {
+          "streamQualities": [
+            "HLS",
+            "High",
+            "Low"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true,
+          "segmentHttp": 206,
+          "segmentBytes": 1024,
+          "segmentAvailable": true
+        }
+      ]
+    },
+    {
+      "source": "xhamster",
+      "cards": 50,
+      "ok": true,
+      "previewChecks": [
+        {
+          "http": 200,
+          "image": true
+        }
+      ],
+      "streamChecks": [
+        {
+          "streamQualities": [
+            "HLS"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true,
+          "segmentHttp": 206,
+          "segmentBytes": 1024,
+          "segmentAvailable": true
+        }
+      ]
+    },
+    {
+      "source": "bongacams",
+      "cards": 72,
+      "ok": true,
+      "previewChecks": [
+        {
+          "http": 200,
+          "image": true
+        }
+      ],
+      "streamChecks": [
+        {
+          "streamQualities": [
+            "HLS"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true,
+          "segmentHttp": 206,
+          "segmentBytes": 733,
+          "segmentAvailable": true
+        }
+      ]
+    },
+    {
+      "source": "runetki",
+      "cards": 72,
+      "ok": true,
+      "previewChecks": [
+        {
+          "http": 200,
+          "image": true
+        }
+      ],
+      "streamChecks": [
+        {
+          "streamQualities": [
+            "HLS"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true,
+          "segmentHttp": 206,
+          "segmentBytes": 1024,
+          "segmentAvailable": true
+        }
+      ]
+    }
+  ]
+}

@@ -3,11 +3,13 @@
   const app = global.SisiPlus;
   const U = app.AdapterUtils;
   const SITE = 'https://chaturbate.com';
+  // Supported by maintained yt-dlp Chaturbate extractor; account requests stay on SITE.
+  const PUBLIC_ORIGINS = [SITE, 'https://chaturbate.eu', 'https://chaturbate.global'];
   const API = `${SITE}/api/public/affiliates/onlinerooms/`;
   const COUNTRIES = app.LiveAdapters.LIVE_COUNTRIES;
 
   class ChaturbateAdapter extends app.Adapter {
-    constructor() { super('chaturbate'); this.models = new Map(); }
+    constructor() { super('chaturbate'); this.models = new Map(); app.Api.registerMirrors(this.id, PUBLIC_ORIGINS); }
     getName() { return 'Chaturbate'; }
     getCapabilities() { return { account: true, favorites: true }; }
     getCategories() {
@@ -26,7 +28,7 @@
       url.searchParams.set('offset', String(offset));
       if (category && category !== 'all') url.searchParams.set('gender', category);
       if (tag) url.searchParams.set('tag', tag);
-      return app.Api.cached(`cb:${url}`, () => app.Api.siteJson(url.href, { referer: `${SITE}/` }), 20_000);
+      return app.Api.cached(`cb:${url}`, async () => (await app.Api.publicJson(url.href, PUBLIC_ORIGINS, { validateData: data => data && Array.isArray(data.results) })).data, 20_000);
     }
     mapModel(model) {
       const country = String(model.country || '').toLowerCase();
@@ -66,28 +68,33 @@
       const pageUrl = item.webpageUrl || `${SITE}/${encodeURIComponent(username)}/`;
       let stream = '';
       let lastError;
+      let resolvedOrigin = SITE;
+      const deadline = Date.now() + 35000;
       // Public stream resolution must not be tied to an account Cookie: otherwise
       // the privacy guard correctly disables all public-proxy fallbacks.
       const requests = [
-        () => app.Api.siteJson(`${SITE}/api/chatvideocontext/${encodeURIComponent(username)}/`, {
-          referer: `${SITE}/`, headers: { Accept: 'application/json' }
+        () => app.Api.publicJson(`${SITE}/api/chatvideocontext/${encodeURIComponent(username)}/`, PUBLIC_ORIGINS, {
+          deadline, headers: { Accept: 'application/json' }
         }),
-        () => app.Api.siteJson(`${SITE}/get_edge_hls_url_ajax/`, {
+        () => app.Api.publicJson(`${SITE}/get_edge_hls_url_ajax/`, PUBLIC_ORIGINS, {
+          deadline,
           method: 'POST', body: `room_slug=${encodeURIComponent(username)}&bandwidth=high`, referer: pageUrl,
           headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest', Origin: SITE }
         })
       ];
       for (const request of requests) {
+        if (Date.now() > deadline) break;
         try {
-          const context = await request();
+          const result = await request();
+          const context = result.data;
           if (context.room_status && context.room_status !== 'public') throw Object.assign(new Error('Комната сейчас не транслируется публично'), { roomUnavailable: true });
           stream = context.hls_source || context.url || '';
-          if (stream) break;
+          if (stream) { resolvedOrigin = result.origin; break; }
         } catch (error) { if (error.roomUnavailable) throw error; lastError = error; }
       }
-      if (stream) return { title: item.title || username, poster: item.poster || '', mimeType: 'application/x-mpegURL', streams: { HLS: stream }, webpageUrl: pageUrl, headers: { Referer: `${SITE}/`, Origin: SITE } };
+      if (stream) return { title: item.title || username, poster: item.poster || '', mimeType: 'application/x-mpegURL', streams: { HLS: stream }, webpageUrl: pageUrl, headers: { Referer: `${resolvedOrigin}/`, Origin: resolvedOrigin } };
       let html = '';
-      try { html = await app.Api.siteText(pageUrl, { referer: `${SITE}/` }); }
+      try { const result = await app.Api.publicText(pageUrl, PUBLIC_ORIGINS, { deadline, validate: value => /initialRoomDossier|hls_source/.test(value) }); html = result.text; resolvedOrigin = result.origin; }
       catch (error) { lastError = error; }
       const assignment = html.match(/initialRoomDossier\s*=\s*("(?:\\.|[^"\\])*")/);
       if (assignment) {
@@ -109,7 +116,7 @@
         const status = lastError.status ? ` (HTTP ${lastError.status})` : '';
         throw new Error(`Chaturbate не выдал публичный поток${status}. Попробуйте другой HTTPS-прокси в настройках.`);
       }
-      return { title: item.title || username, poster: item.poster || '', mimeType: 'application/x-mpegURL', streams: stream ? { HLS: stream } : {}, webpageUrl: pageUrl, headers: { Referer: `${SITE}/`, Origin: SITE } };
+      return { title: item.title || username, poster: item.poster || '', mimeType: 'application/x-mpegURL', streams: stream ? { HLS: stream } : {}, webpageUrl: pageUrl, headers: { Referer: `${resolvedOrigin}/`, Origin: resolvedOrigin } };
     }
 
     sessionCookie(session) {

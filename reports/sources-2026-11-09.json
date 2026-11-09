@@ -1,0 +1,250 @@
+{
+  "checkedAt": "2026-11-09T09:57:20.079Z",
+  "proxyEnabled": true,
+  "results": [
+    {
+      "source": "stripchat",
+      "cards": 60,
+      "ok": true,
+      "previewChecks": [
+        {
+          "http": 200,
+          "image": true
+        }
+      ],
+      "streamChecks": [
+        {
+          "streamQualities": [
+            "240p",
+            "480p",
+            "original"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true
+        },
+        {
+          "streamQualities": [
+            "240p",
+            "original",
+            "480p"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true
+        },
+        {
+          "streamQualities": [
+            "480p",
+            "240p",
+            "original"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true
+        }
+      ]
+    },
+    {
+      "source": "chaturbate",
+      "cards": 81,
+      "ok": true,
+      "previewChecks": [
+        {
+          "http": 200,
+          "image": true
+        }
+      ],
+      "streamChecks": [
+        {
+          "streamQualities": [
+            "HLS"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true
+        },
+        {
+          "streamQualities": [
+            "HLS"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true
+        },
+        {
+          "streamQualities": [
+            "HLS"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true
+        }
+      ]
+    },
+    {
+      "source": "pornhub",
+      "cards": 30,
+      "ok": true,
+      "previewChecks": [
+        {
+          "http": 200,
+          "image": true
+        }
+      ],
+      "streamChecks": [
+        {
+          "streamQualities": [
+            "1080p",
+            "240p",
+            "480p",
+            "720p"
+          ],
+          "hlsHttp": 410
+        },
+        {
+          "streamError": "This operation was aborted"
+        },
+        {
+          "streamError": "This operation was aborted"
+        }
+      ]
+    },
+    {
+      "source": "xvideos",
+      "cards": 27,
+      "ok": true,
+      "previewChecks": [
+        {
+          "http": 200,
+          "image": true
+        }
+      ],
+      "streamChecks": [
+        {
+          "streamQualities": [
+            "HLS",
+            "High",
+            "Low"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true
+        },
+        {
+          "streamQualities": [
+            "HLS",
+            "High",
+            "Low"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true
+        },
+        {
+          "streamQualities": [
+            "HLS",
+            "High",
+            "Low"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true
+        }
+      ]
+    },
+    {
+      "source": "xhamster",
+      "cards": 50,
+      "ok": true,
+      "previewChecks": [
+        {
+          "http": 200,
+          "image": true
+        }
+      ],
+      "streamChecks": [
+        {
+          "streamQualities": [
+            "HLS"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true
+        },
+        {
+          "streamQualities": [
+            "HLS"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true
+        },
+        {
+          "streamQualities": [
+            "HLS"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true
+        }
+      ]
+    },
+    {
+      "source": "bongacams",
+      "cards": 72,
+      "ok": true,
+      "previewChecks": [
+        {
+          "http": 200,
+          "image": true
+        }
+      ],
+      "streamChecks": [
+        {
+          "streamQualities": [
+            "HLS"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true
+        },
+        {
+          "streamQualities": [
+            "HLS"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true
+        },
+        {
+          "streamQualities": [
+            "HLS"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true
+        }
+      ]
+    },
+    {
+      "source": "runetki",
+      "cards": 72,
+      "ok": true,
+      "previewChecks": [
+        {
+          "http": 200,
+          "image": true
+        }
+      ],
+      "streamChecks": [
+        {
+          "streamQualities": [
+            "HLS"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true
+        },
+        {
+          "streamQualities": [
+            "HLS"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true
+        },
+        {
+          "streamQualities": [
+            "HLS"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true
+        }
+      ]
+    }
+  ]
+}

@@ -146,6 +146,8 @@
   function settingsPanel() {
     panel('Настройки', body => {
       description(body, 'S Videos + · 0.1.0-alpha.4');
+      option(body, 'Проверить обновления', () => native.call('checkUpdates').catch(error => toast(error.message)));
+      option(body, 'Зеркала  ›', mirrorsPanel);
       const proxyEnabled = app.Settings.get('public_proxy', true);
       const proxyName = proxyEnabled ? (app.Settings.get('proxy_mode', 'auto') === 'force' ? 'Принудительно' : 'Авто') : 'Выключены';
       option(body, 'Прокси: ' + proxyName + '  ›', proxyPanel);
@@ -155,13 +157,39 @@
       option(body, 'О приложении', () => panel('S Videos +', panelBody => description(panelBody, 'Отдельное приложение Android TV. Восемь независимых адаптеров, интерфейс Calm и нативный плеер Media3. Данные сайтов могут изменяться. Исходники плагина Lampa не изменяются.'), settingsPanel));
     });
   }
+  function mirrorsPanel() {
+    panel('Зеркала', body => {
+      description(body, 'Если основной сайт недоступен, выберите известное зеркало. При ошибке выбранного адреса приложение попробует остальные. Это не гарантирует обход блокировки видеосервера.');
+      app.getAdapters().forEach(adapter => {
+        const mirrors = app.Api.getMirrors(adapter.id);
+        if (mirrors.origins.length < 2) return;
+        const current = mirrors.selected === 'auto' ? 'Автоматически' : new URL(mirrors.selected).hostname;
+        option(body, adapter.getName() + ': ' + current + '  ›', () => mirrorSourcePanel(adapter));
+      });
+      description(body, 'Cookie аккаунта не отправляются зеркалам. Stripchat использует отдельный API каталога: замена домена сайта для него не применяется. eFukt не изменён.');
+    }, settingsPanel);
+  }
+  function mirrorSourcePanel(adapter) {
+    panel('Зеркала · ' + adapter.getName(), body => {
+      const mirrors = app.Api.getMirrors(adapter.id);
+      description(body, 'Выбор сохраняется для публичного каталога и получения ссылки на видео. Уже открытое видео не переключается.');
+      const choose = origin => {
+        app.Api.selectMirror(adapter.id, origin);
+        toast('Адрес сохранён');
+        mirrorSourcePanel(adapter);
+        if (model.state.source === adapter.id) model.load();
+      };
+      option(body, 'Автоматически', () => choose('auto'), mirrors.selected === 'auto');
+      mirrors.origins.forEach(origin => option(body, new URL(origin).hostname, () => choose(origin), mirrors.selected === origin));
+    }, mirrorsPanel);
+  }
   function proxyPanel() {
     panel('Сеть и прокси', body => {
-      description(body, 'Авто: сначала прямой запрос, при ошибке — резервный. Принудительно: сразу через свой прокси или Cherry. Для потоков обрабатываются также HLS-сегменты и ключи.');
+      description(body, 'Авто: сначала напрямую, при ошибке — резервный маршрут. Принудительный режим сразу отправляет превью и потоки через прокси. Каталоги/API сначала проверяют прямые адреса и зеркала. Обрабатываются также HLS-сегменты и ключи.');
       const setMode = mode => { app.Settings.set('public_proxy', mode !== 'off'); app.Settings.set('proxy_mode', mode === 'force' ? 'force' : 'auto'); app.Api.cache.clear(); proxyPanel(); };
       const enabled = app.Settings.get('public_proxy', true), forced = app.Settings.get('proxy_mode', 'auto') === 'force';
       option(body, 'Автоматический резерв', () => setMode('auto'), enabled && !forced);
-      option(body, 'Принудительно через прокси', () => setMode('force'), enabled && forced);
+      option(body, 'Принудительно для превью и потоков', () => setMode('force'), enabled && forced);
       option(body, 'Без сторонних прокси', () => setMode('off'), !enabled);
       const label = document.createElement('label'); label.className = 'field-label'; label.textContent = 'Свой HTTPS-прокси (необязательно)'; body.appendChild(label);
       const input = document.createElement('textarea'); input.setAttribute('aria-label', 'Свой HTTPS-прокси'); input.value = app.Settings.get('proxy_url', ''); input.placeholder = 'https://your-proxy.example/?url={url}&referer={referer}'; input.spellcheck = false; body.appendChild(input);

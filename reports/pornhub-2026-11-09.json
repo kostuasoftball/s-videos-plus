@@ -1,0 +1,41 @@
+{
+  "checkedAt": "2026-11-09T09:48:30.202Z",
+  "proxyEnabled": true,
+  "results": [
+    {
+      "source": "pornhub",
+      "cards": 30,
+      "ok": true,
+      "previewChecks": [
+        {
+          "http": 200,
+          "image": true
+        }
+      ],
+      "streamChecks": [
+        {
+          "streamError": "fetch failed"
+        },
+        {
+          "streamQualities": [
+            "1080p",
+            "240p",
+            "480p",
+            "720p"
+          ],
+          "hlsHttp": 200,
+          "hlsManifest": true
+        },
+        {
+          "streamQualities": [
+            "1080p",
+            "240p",
+            "480p",
+            "720p"
+          ],
+          "hlsHttp": 410
+        }
+      ]
+    }
+  ]
+}
