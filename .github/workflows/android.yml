@@ -69,4 +69,4 @@ jobs:
         run: |
           cp app/build/outputs/apk/release/app-release.apk S-Videos-Plus.apk
           node scripts/release-metadata.cjs S-Videos-Plus.apk
-          gh release create "$GITHUB_REF_NAME" S-Videos-Plus.apk update.json --prerelease --title "S Videos + ${GITHUB_REF_NAME}" --notes "Настройки зеркал, резервные маршруты превью и HLS, обновление из приложения с проверкой SHA-256 и подписи APK. Android запрашивает подтверждение установки. Проверены каталоги, превью и публичные плейлисты семи источников кроме eFukt. Pornhub остаётся нестабильным: возможны HTTP 410 и таймауты."
+          gh release create "$GITHUB_REF_NAME" S-Videos-Plus.apk update.json --prerelease --title "S Videos + ${GITHUB_REF_NAME}" --notes "Системное поле ввода Cookie для клавиатуры Android TV и удалённого ввода Google TV. Без автокоррекции; символы Cookie сохраняются без декодирования; отмена не изменяет сессию. Адаптеры, категории, плеер и сеть не изменены. Проверка с физическим телефоном Google TV не проводилась."

@@ -54,6 +54,22 @@ catch { ({ chromium } = require('C:/Users/matyugin/.cache/codex-runtimes/codex-p
     await page.keyboard.press('Escape'); await page.keyboard.press('Escape');
     await page.getByRole('button', { name: 'Аккаунт Stripchat  ›' }).click();
     assert.equal(await page.getByRole('textbox', { name: 'Cookie' }).count(), 1);
+    await page.evaluate(() => {
+      window.testOriginalNativeCall = SVideos.call;
+      window.testNativeCalls = [];
+      SVideos.native = true;
+      SVideos.call = async (method, data) => { window.testNativeCalls.push({ method, data }); return true; };
+    });
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'Аккаунт Stripchat  ›' }).click();
+    assert.equal(await page.getByRole('textbox', { name: 'Cookie' }).count(), 0);
+    await page.getByRole('button', { name: 'Ввести Cookie с клавиатуры ТВ / Google TV', exact: true }).click();
+    assert.deepEqual(await page.evaluate(() => window.testNativeCalls), [{ method: 'editSession', data: { source: 'stripchat' } }]);
+    await page.evaluate(() => SVideosEvent('sessionInput', JSON.stringify({ source: 'stripchat', value: 'TEST_ONLY=a+b/c==; encoded=%3B%2B' })));
+    assert.equal(await page.evaluate(() => SisiPlus.Auth.getSession('stripchat') === 'TEST_ONLY=a+b/c==; encoded=%3B%2B'), true);
+    assert.equal((await page.locator('body').innerText()).includes('TEST_ONLY='), false);
+    await page.getByRole('button', { name: 'Удалить сессию', exact: true }).click();
+    await page.evaluate(() => { SVideos.native = false; SVideos.call = window.testOriginalNativeCall; delete window.testOriginalNativeCall; delete window.testNativeCalls; });
     await page.keyboard.press('Escape'); await page.keyboard.press('Escape');
     await page.locator('.source').filter({ hasText: 'Chaturbate' }).click();
     await page.waitForFunction(() => document.getElementById('source-name').textContent === 'Chaturbate');
@@ -65,6 +81,6 @@ catch { ({ chromium } = require('C:/Users/matyugin/.cache/codex-runtimes/codex-p
     await page.locator('#filters').click(); await page.getByRole('button', { name: 'Страна / национальность  ›' }).click();
     await page.screenshot({ path: path.join(__dirname, '../test-results/countries.png') });
     assert.deepEqual(errors, []);
-    console.log('PASS: four columns, D-pad rows and right-edge filters, country headings, search/back, accounts, mirror selection/persistence/reset/back, source switching. No JS runtime errors.');
+    console.log('PASS: four columns, D-pad, filters, search/back, accounts, native session entry bridge/save/delete without secret display, mirrors, source switching. No JS runtime errors.');
   } finally { if (browser) await browser.close(); await new Promise(resolve => server.close(resolve)); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

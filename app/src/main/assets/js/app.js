@@ -145,7 +145,7 @@
   }
   function settingsPanel() {
     panel('Настройки', body => {
-      description(body, 'S Videos + · 0.1.0-alpha.4');
+      description(body, 'S Videos + · 0.1.0-alpha.5');
       option(body, 'Проверить обновления', () => native.call('checkUpdates').catch(error => toast(error.message)));
       option(body, 'Зеркала  ›', mirrorsPanel);
       const proxyEnabled = app.Settings.get('public_proxy', true);
@@ -206,8 +206,13 @@
     panel('Аккаунт ' + adapter.getName(), body => {
       description(body, app.Auth.getState(id).message);
       description(body, 'Авторизация необязательна. Вставьте значение заголовка Cookie из браузера после входа в свой аккаунт. Сессия хранится только на устройстве.');
-      const input = document.createElement('textarea'); input.placeholder = 'Cookie авторизованной сессии'; input.setAttribute('aria-label', 'Cookie'); input.autocomplete = 'off'; input.spellcheck = false; body.appendChild(input);
-      option(body, 'Сохранить сессию', () => { const value = input.value.trim().replace(/^cookie\s*:\s*/i, ''); if (!value) return toast('Вставьте Cookie'); app.Auth.setSession(id, value); input.value = ''; toast('Сессия сохранена'); accountPanel(id); });
+      if (native.native) {
+        option(body, 'Ввести Cookie с клавиатуры ТВ / Google TV', () => native.call('editSession', { source: id }).catch(error => toast(error.message)));
+        description(body, 'В системном поле можно вставить текст с телефона через Google TV. Существующая сессия не показывается и не заменяется до сохранения.');
+      } else {
+        const input = document.createElement('textarea'); input.placeholder = 'Cookie авторизованной сессии'; input.setAttribute('aria-label', 'Cookie'); input.autocomplete = 'off'; input.spellcheck = false; body.appendChild(input);
+        option(body, 'Сохранить сессию', () => { const value = input.value.trim().replace(/^cookie\s*:\s*/i, ''); if (!value) return toast('Вставьте Cookie'); app.Auth.setSession(id, value); input.value = ''; toast('Сессия сохранена'); accountPanel(id); });
+      }
       option(body, 'Проверить подключение', async () => { toast('Проверка подключения…'); const state = await app.Auth.validate(adapter, true); toast(state.message); if (modal && $('panel-title').textContent === 'Аккаунт ' + adapter.getName()) accountPanel(id); });
       option(body, 'Удалить сессию', () => { app.Auth.clear(adapter); toast('Сессия удалена'); accountPanel(id); });
     }, settingsPanel);
@@ -302,6 +307,17 @@
     enterTarget = null;
   });
   global.SVideosEvent = function (type, detail) {
+    if (type === 'sessionInput') {
+      try {
+        const data = JSON.parse(detail);
+        const adapter = app.getAdapter(data.source);
+        if (!adapter || !adapter.getCapabilities().account || typeof data.value !== 'string') return;
+        app.Auth.setSession(data.source, data.value);
+        toast('Сессия сохранена');
+        if (modal && $('panel-title').textContent === 'Аккаунт ' + adapter.getName()) accountPanel(data.source);
+      } catch (error) { toast('Не удалось сохранить сессию'); }
+      return;
+    }
     if (type === 'back') back();
     if (type === 'next') switchVideo(1);
     if (type === 'previous') switchVideo(-1);

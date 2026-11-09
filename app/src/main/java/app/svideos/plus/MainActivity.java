@@ -32,6 +32,7 @@ public final class MainActivity extends Activity {
     private ImageLoader images;
     private PlaybackHost playback;
     private AppUpdater updater;
+    private SessionInput sessionInput;
     private volatile boolean destroyed;
     private final ThreadPoolExecutor network = new ThreadPoolExecutor(4, 4, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<>(32));
 
@@ -41,6 +42,10 @@ public final class MainActivity extends Activity {
         getWindow().getDecorView().setSystemUiVisibility(5894);
         store = new SecureStore(this);
         updater = new AppUpdater(this);
+        sessionInput = new SessionInput(this, (source, value) -> {
+            try { event("sessionInput", new JSONObject().put("source", source).put("value", value).toString()); }
+            catch (Exception ignored) { event("storageError", ""); }
+        });
         images = new ImageLoader(store);
         FrameLayout root = new FrameLayout(this); setContentView(root);
         web = new WebView(this); root.addView(web, new FrameLayout.LayoutParams(-1, -1));
@@ -135,6 +140,11 @@ public final class MainActivity extends Activity {
                     });
                 } else if (method.equals("checkUpdates")) {
                     runOnUiThread(() -> { updater.check(); result(id, true, true, 0); });
+                } else if (method.equals("editSession")) {
+                    String source = data.getString("source");
+                    if (!source.equals("stripchat") && !source.equals("chaturbate")) throw new IllegalArgumentException("Unsupported account");
+                    // Resolve immediately: a person may spend minutes entering the value.
+                    runOnUiThread(() -> { sessionInput.open(source); result(id, true, true, 0); });
                 } else if (method.equals("play")) {
                     runOnUiThread(() -> { try { playback.play(data); result(id, true, true, 0); } catch (Exception error) { result(id, false, "Плеер не смог открыть поток", 0); } });
                 } else if (method.equals("openPage")) {
@@ -155,6 +165,7 @@ public final class MainActivity extends Activity {
     @Override protected void onDestroy() {
         destroyed = true; network.shutdownNow();
         if (updater != null) updater.close();
+        if (sessionInput != null) sessionInput.close();
         if (playback != null) playback.release();
         if (web != null) { web.removeJavascriptInterface("SVideosAndroid"); web.destroy(); }
         super.onDestroy();
