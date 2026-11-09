@@ -19,6 +19,7 @@ android {
         release {
             if (System.getenv('SVIDEOS_KEYSTORE')) {
                 storeFile file(System.getenv('SVIDEOS_KEYSTORE'))
+                storeType 'PKCS12'
                 storePassword System.getenv('SVIDEOS_STORE_PASSWORD')
                 keyAlias 'svideos'
                 keyPassword System.getenv('SVIDEOS_STORE_PASSWORD')
