@@ -45,5 +45,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp app/build/outputs/apk/release/app-release.apk S-Videos-Plus-${GITHUB_REF_NAME}.apk
-          gh release create "$GITHUB_REF_NAME" S-Videos-Plus-${GITHUB_REF_NAME}.apk --prerelease --title "S Videos + ${GITHUB_REF_NAME}" --notes "First signed Android TV testing build. Source availability depends on the network and upstream sites."
+          cp app/build/outputs/apk/release/app-release.apk S-Videos-Plus.apk
+          gh release create "$GITHUB_REF_NAME" S-Videos-Plus.apk --prerelease --title "S Videos + ${GITHUB_REF_NAME}" --notes "Первая подписанная alpha для Android TV. Каталог, поиск, фильтры, D-pad и нативный Media3-плеер. Доступность сайтов зависит от сети и защиты самих источников. Требуется проверка на физическом ТВ."

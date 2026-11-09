@@ -13,6 +13,8 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.media3.common.MediaItem;
+import androidx.media3.common.AudioAttributes;
+import androidx.media3.common.C;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.media3.datasource.DefaultHttpDataSource;
@@ -95,6 +97,8 @@ final class PlaybackHost {
             .setConnectTimeoutMs(15000).setReadTimeoutMs(20000).setAllowCrossProtocolRedirects(false);
         if (player != null) { playerView.setPlayer(null); player.release(); }
         player = new ExoPlayer.Builder(activity).setMediaSourceFactory(new DefaultMediaSourceFactory(dataSource)).build();
+        player.setAudioAttributes(new AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(), true);
+        player.setHandleAudioBecomingNoisy(true);
         player.addListener(new Player.Listener() {
             @Override public void onPlayerError(PlaybackException error) { events.send("playerError", "Ошибка потока: " + error.getErrorCodeName()); }
             @Override public void onPlaybackStateChanged(int state) { if (state == Player.STATE_ENDED) events.send("next", ""); }
@@ -108,7 +112,9 @@ final class PlaybackHost {
     private void qualityMenu() {
         if (video == null) return;
         JSONObject streams = video.optJSONObject("streams"); if (streams == null) return;
-        ArrayList<String> keys = new ArrayList<>(); streams.keys().forEachRemaining(keys::add);
+        ArrayList<String> keys = new ArrayList<>();
+        Iterator<String> iterator = streams.keys();
+        while (iterator.hasNext()) keys.add(iterator.next());
         new AlertDialog.Builder(activity).setTitle("Качество").setSingleChoiceItems(keys.toArray(new String[0]), keys.indexOf(quality), (dialog, which) -> {
             try { long position = player == null || player.isCurrentMediaItemLive() ? 0 : player.getCurrentPosition(); quality = keys.get(which); load(streams.getString(quality), position); }
             catch (Exception error) { events.send("playerError", "Не удалось переключить качество"); }
