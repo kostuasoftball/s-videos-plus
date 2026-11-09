@@ -48,7 +48,7 @@ public class SessionInputTest {
         input.open("stripchat");
         ShadowLooper.idleMainLooper();
         AlertDialog first = ShadowAlertDialog.getLatestAlertDialog();
-        List<android.view.View> firstFields = new ArrayList<>();
+        ArrayList<android.view.View> firstFields = new ArrayList<>();
         first.getWindow().getDecorView().findViewsWithText(firstFields, "Cookie", android.view.View.FIND_VIEWS_WITH_CONTENT_DESCRIPTION);
         EditText firstEditor = (EditText) firstFields.get(0); firstEditor.setText(SAMPLE);
         first.cancel();
@@ -59,7 +59,7 @@ public class SessionInputTest {
         ShadowLooper.idleMainLooper();
         AlertDialog second = ShadowAlertDialog.getLatestAlertDialog();
         assertNotEquals(0, second.getWindow().getAttributes().flags & WindowManager.LayoutParams.FLAG_SECURE);
-        List<android.view.View> fields = new ArrayList<>();
+        ArrayList<android.view.View> fields = new ArrayList<>();
         second.getWindow().getDecorView().findViewsWithText(fields, "Cookie", android.view.View.FIND_VIEWS_WITH_CONTENT_DESCRIPTION);
         EditText secondEditor = (EditText) fields.get(0);
         secondEditor.setText(SAMPLE); secondEditor.onEditorAction(EditorInfo.IME_ACTION_DONE);
