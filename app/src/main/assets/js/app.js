@@ -19,11 +19,18 @@
     });
   }
   const model = new global.SVideosCatalog(app, render);
+  function replace(node, ...children) {
+    while (node.firstChild) node.removeChild(node.firstChild);
+    children.forEach(child => node.appendChild(child));
+  }
   function scale() {
-    const ratio = Math.min(innerWidth / 1600, innerHeight / 900);
+    // innerWidth may include the unscaled 1600px canvas on older Android WebViews.
+    const width = document.documentElement.clientWidth;
+    const height = document.documentElement.clientHeight;
+    const ratio = Math.min(width / 1600, height / 900);
     $('screen').style.transform = 'scale(' + ratio + ')';
-    $('screen').style.left = (innerWidth - 1600 * ratio) / 2 + 'px';
-    $('screen').style.top = (innerHeight - 900 * ratio) / 2 + 'px';
+    $('screen').style.left = (width - 1600 * ratio) / 2 + 'px';
+    $('screen').style.top = (height - 900 * ratio) / 2 + 'px';
   }
   function clock() { $('clock').textContent = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }); }
   function toast(message) {
@@ -38,7 +45,7 @@
   function panel(title, draw, back) {
     if (!modal) restoreFocus = document.activeElement;
     modal = true; panelBack = back || null; $('modal-layer').hidden = false;
-    $('panel-title').textContent = title; $('panel-body').replaceChildren();
+    $('panel-title').textContent = title; replace($('panel-body'));
     draw($('panel-body'));
     focus($('panel-body').querySelector('.selected, button, input, textarea') || $('panel-close'));
   }
@@ -66,8 +73,8 @@
     const key = JSON.stringify([state.source, state.category, state.categories]);
     if (sourcesKey !== key) {
       sourcesKey = key;
-      $('sources').replaceChildren(...sourceIds.map(id => button(app.getAdapter(id).getName(), 'source' + (state.source === id ? ' active' : ''), () => selectSource(id))));
-      $('categories').replaceChildren(...state.categories.map(item => button(item.title, 'category' + (state.category === item.id ? ' active' : ''), () => model.chooseCategory(item.id))));
+      replace($('sources'), ...sourceIds.map(id => button(app.getAdapter(id).getName(), 'source' + (state.source === id ? ' active' : ''), () => selectSource(id))));
+      replace($('categories'), ...state.categories.map(item => button(item.title, 'category' + (state.category === item.id ? ' active' : ''), () => model.chooseCategory(item.id))));
     }
     const newKey = JSON.stringify([state.source, state.category, state.country, state.query, state.favorites, state.items.map(item => item.id)]);
     if (newKey !== catalogKey) {
@@ -75,7 +82,7 @@
       const priorId = prior && prior.dataset ? prior.dataset.id : '';
       const hadCardFocus = prior && prior.classList.contains('card');
       catalogKey = newKey;
-      $('cards').replaceChildren(...state.items.map((item, index) => {
+      replace($('cards'), ...state.items.map((item, index) => {
         const card = button('', 'card', () => play(index)); card.dataset.id = String(item.id); card.dataset.index = String(index); card.setAttribute('role', 'listitem');
         card.addEventListener('focus', () => { lastFocusedCard = String(item.id); });
         card.addEventListener('contextmenu', event => { event.preventDefault(); videoMenu(item, index); });
@@ -135,7 +142,7 @@
   }
   function settingsPanel() {
     panel('Настройки', body => {
-      description(body, 'S Videos + · 0.1.0-alpha.2');
+      description(body, 'S Videos + · 0.1.0-alpha.3');
       option(body, 'Резервный публичный прокси: ' + (app.Settings.get('public_proxy', false) ? 'Включён' : 'Выключен'), () => { app.Settings.set('public_proxy', !app.Settings.get('public_proxy', false)); settingsPanel(); });
       description(body, 'Прокси — внешний сервис для публичных каталогов. По умолчанию выключен. Cookie аккаунта через него не передаются.');
       ['stripchat', 'chaturbate'].forEach(id => option(body, 'Аккаунт ' + app.getAdapter(id).getName() + '  ›', () => accountPanel(id)));

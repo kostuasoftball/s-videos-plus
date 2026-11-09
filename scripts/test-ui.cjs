@@ -13,6 +13,7 @@ catch { ({ chromium } = require('C:/Users/matyugin/.cache/codex-runtimes/codex-p
   try {
     browser = await chromium.launch({ headless: true });
     const page = await browser.newPage({ viewport: { width: 1600, height: 900 } });
+    await page.addInitScript(() => { Element.prototype.replaceChildren = undefined; });
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(`http://127.0.0.1:${server.address().port}/?demo=1`);
     await page.locator('.card').first().waitFor();

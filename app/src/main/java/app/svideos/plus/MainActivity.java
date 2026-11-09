@@ -42,6 +42,7 @@ public final class MainActivity extends Activity {
         web = new WebView(this); root.addView(web, new FrameLayout.LayoutParams(-1, -1));
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG);
         WebSettings settings = web.getSettings(); settings.setJavaScriptEnabled(true); settings.setDomStorageEnabled(true);
+        settings.setUseWideViewPort(true);
         settings.setAllowFileAccess(false); settings.setAllowContentAccess(false); settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         settings.setJavaScriptCanOpenWindowsAutomatically(false); settings.setSupportMultipleWindows(false);
         web.setBackgroundColor(0xFF0D111B); web.setFocusable(true); web.setFocusableInTouchMode(true);
@@ -57,7 +58,7 @@ public final class MainActivity extends Activity {
         web.setWebViewClient(new WebViewClient() {
             @Override public void onPageFinished(WebView view, String url) {
                 if (!ORIGIN.equals(Uri.parse(url).getHost())) return;
-                view.evaluateJavascript("JSON.stringify({booted:!!window.SVideosUI,sources:document.querySelectorAll('.source').length})", result -> {
+                view.evaluateJavascript("JSON.stringify({booted:!!window.SVideosUI,sources:document.querySelectorAll('.source').length,width:document.documentElement.clientWidth,height:document.documentElement.clientHeight})", result -> {
                     try {
                         Object decoded = new org.json.JSONTokener(result).nextValue();
                         JSONObject ready = new JSONObject(String.valueOf(decoded));
