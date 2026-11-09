@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https: data:; connect-src https:; object-src 'none'; base-uri 'none'; frame-src 'none'">
+  <title>S Videos +</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div id="screen">
+  <aside class="rail">
+    <div class="brand"><span class="brand-mark">▶</span><span>S Videos <b>+</b></span></div>
+    <div class="rail-caption">ИСТОЧНИКИ</div>
+    <nav id="sources" aria-label="Источники"></nav>
+    <div class="rail-bottom">
+      <button id="favorites" class="rail-button"><span class="nav-icon">♡</span>Избранное</button>
+      <button id="settings" class="rail-button"><span class="nav-icon">⚙</span>Настройки</button>
+    </div>
+    <span class="version">ANDROID TV · 0.1.0 α</span>
+  </aside>
+  <main>
+    <header class="top"><span id="breadcrumb">Каталог</span><time id="clock"></time></header>
+    <div class="heading"><div><h1 id="source-name">S Videos +</h1><p id="source-description">Видео и прямые трансляции</p></div>
+      <div class="actions"><button id="search" class="action">⌕ <span>Поиск</span></button><button id="filters" class="action">☷ <span>Фильтры</span></button></div>
+    </div>
+    <nav id="categories" aria-label="Категории"></nav>
+    <div class="section-heading"><h2 id="section-title">Популярные сейчас</h2><span id="filter-summary">Все страны</span></div>
+    <div id="catalog" tabindex="-1"><div id="cards" role="list"></div><div id="empty" hidden></div><button id="next-page" class="action" hidden>Загрузить следующую страницу</button></div>
+    <footer><span><kbd>OK</kbd> Смотреть</span><span>Удерживать <kbd>OK</kbd> · меню видео</span><span class="footer-right">← Источники &nbsp; · &nbsp; → Фильтры</span></footer>
+  </main>
+  <div id="modal-layer" hidden><button id="scrim" tabindex="-1" aria-label="Закрыть"></button><section id="panel" role="dialog" aria-modal="true" aria-labelledby="panel-title"><div class="panel-top"><h2 id="panel-title"></h2><button id="panel-close" class="icon-button" aria-label="Закрыть">×</button></div><div id="panel-body"></div><div class="panel-hint">BACK · Назад &nbsp;&nbsp; OK · Выбрать</div></section></div>
+  <div id="toast" role="status" hidden></div>
+  <div id="busy" hidden><span class="spinner"></span><span id="busy-text">Загрузка…</span></div>
+  <div id="demo-label" hidden>ДЕМО · УСЛОВНЫЕ ДАННЫЕ</div>
+</div>
+<script src="js/platform.js"></script>
+<script src="js/api.js"></script>
+<script src="js/adapter-utils.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/adapters/live-base.js"></script>
+<script src="js/adapters/pornhub.js"></script>
+<script src="js/adapters/xvideos.js"></script>
+<script src="js/adapters/xhamster.js"></script>
+<script src="js/adapters/efukt.js"></script>
+<script src="js/adapters/bongacams.js"></script>
+<script src="js/adapters/runetki.js"></script>
+<script src="js/adapters/chaturbate.js"></script>
+<script src="js/adapters/stripchat.js"></script>
+<script src="js/model.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

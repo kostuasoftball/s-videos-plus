@@ -1,0 +1,42 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'app.svideos.plus'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'app.svideos.plus'
+        minSdk 23
+        targetSdk 35
+        versionCode 1
+        versionName '0.1.0-alpha.1'
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    buildFeatures { buildConfig true }
+    signingConfigs {
+        release {
+            if (System.getenv('SVIDEOS_KEYSTORE')) {
+                storeFile file(System.getenv('SVIDEOS_KEYSTORE'))
+                storePassword System.getenv('SVIDEOS_STORE_PASSWORD')
+                keyAlias 'svideos'
+                keyPassword System.getenv('SVIDEOS_STORE_PASSWORD')
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (System.getenv('SVIDEOS_KEYSTORE')) signingConfig signingConfigs.release
+        }
+    }
+    lint { abortOnError true }
+}
+
+dependencies {
+    implementation 'androidx.media3:media3-exoplayer:1.8.0'
+    implementation 'androidx.media3:media3-exoplayer-hls:1.8.0'
+    implementation 'androidx.media3:media3-exoplayer-dash:1.8.0'
+    implementation 'androidx.media3:media3-ui:1.8.0'
+}

@@ -1,0 +1,11 @@
+.gradle/
+**/build/
+local.properties
+.tools/
+.local/
+node_modules/
+test-results/
+*.jks
+*.keystore
+*.log
+

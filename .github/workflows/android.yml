@@ -1,0 +1,38 @@
+name: Android APK
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm test
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Build and lint
+        run: gradle --no-daemon assembleDebug lintDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: S-Videos-Plus-alpha-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
+      - name: Publish testing APK
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk S-Videos-Plus-${GITHUB_REF_NAME}.apk
+          gh release create "$GITHUB_REF_NAME" S-Videos-Plus-${GITHUB_REF_NAME}.apk --prerelease --title "S Videos + ${GITHUB_REF_NAME}" --notes "First Android TV testing build. Debug-signed; source availability depends on the network and upstream sites."
