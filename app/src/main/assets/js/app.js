@@ -115,13 +115,148 @@
     }
   }
   function selectSource(id) { app.Settings.set('last_source', id); closePanel(); return model.source(id); }
+  // Menu preferences only: do not change adapter queries or catalog contents.
+  function countryPreferences() {
+    const saved = app.Settings.get('country_menu_' + model.state.source, {});
+    const valid = value => Array.isArray(value) ? value.filter(id => typeof id === 'string' && id !== 'all') : [];
+    return { hidden: valid(saved && saved.hidden), pinned: valid(saved && saved.pinned), order: valid(saved && saved.order) };
+  }
+  function saveCountryPreferences(preferences) {
+    try { app.Settings.set('country_menu_' + model.state.source, preferences); return true; }
+    catch (error) { toast('Не удалось сохранить настройки стран'); return false; }
+  }
+  function countryVisibilityPanel() {
+    const filter = model.state.filters.find(item => item.id === 'country');
+    if (!filter) return;
+    panel('Показать / скрыть страны', body => {
+      description(body, 'Управление пунктами меню: закрепите нужные наверху или скройте лишние. Содержимое каталога не меняется.');
+      option(body, 'Показать все страны', () => {
+        const preferences = countryPreferences(); preferences.hidden = [];
+        if (saveCountryPreferences(preferences)) countryVisibilityPanel();
+      });
+      const preferences = countryPreferences();
+      filter.options.forEach(item => {
+        if (item.heading || item.separator || item.id === 'all') return;
+        const hidden = preferences.hidden.includes(item.id);
+        const pinned = preferences.pinned.includes(item.id);
+        const change = field => {
+          const next = countryPreferences();
+          next[field] = next[field].includes(item.id) ? next[field].filter(id => id !== item.id) : next[field].concat(item.id);
+          // Pinning a hidden entry also makes it visible.
+          if (field === 'pinned' && next.pinned.includes(item.id)) next.hidden = next.hidden.filter(id => id !== item.id);
+          if (!saveCountryPreferences(next)) return;
+          countryVisibilityPanel();
+          focus(Array.from($('panel-body').querySelectorAll('button')).find(node => node.dataset.country === item.id && node.dataset.action === field));
+        };
+        const visibility = option(body, item.title + (hidden ? ' — скрыта' : ' — показывать'), () => change('hidden'));
+        visibility.setAttribute('aria-pressed', String(!hidden));
+        visibility.dataset.country = item.id; visibility.dataset.action = 'hidden';
+        const pin = option(body, (pinned ? 'Открепить: ' : 'Закрепить наверху: ') + item.title, () => change('pinned'));
+        pin.setAttribute('aria-pressed', String(pinned));
+        pin.dataset.country = item.id; pin.dataset.action = 'pinned';
+      });
+    }, countryPanel);
+  }
+  function countryGroup(item, preferences) {
+    const options = model.state.filters.find(filter => filter.id === 'country').options;
+    const countries = options.filter(entry => !entry.heading && !entry.separator && entry.id !== 'all');
+    if (preferences.pinned.includes(item.id)) return preferences.pinned.map(id => countries.find(entry => entry.id === id)).filter(Boolean);
+    const index = options.findIndex(entry => entry.id === item.id && !entry.heading && !entry.separator);
+    let start = index, end = index + 1;
+    while (start > 0 && !options[start - 1].heading && !options[start - 1].separator) start--;
+    while (end < options.length && !options[end].heading && !options[end].separator) end++;
+    return orderCountries(options.slice(start, end).filter(entry => entry.id !== 'all' && !preferences.pinned.includes(entry.id)), preferences.order);
+  }
+  function orderCountries(items, order) {
+    const rank = id => { const index = order.indexOf(id); return index < 0 ? order.length : index; };
+    return items.map((item, index) => ({ item, index })).sort((a, b) => rank(a.item.id) - rank(b.item.id) || a.index - b.index).map(entry => entry.item);
+  }
+  function returnToCountry(item) {
+    countryPanel();
+    focus(Array.from($('panel-body').querySelectorAll('button')).find(node => node.dataset.countryId === item.id));
+  }
+  function countryActions(item) {
+    const preferences = countryPreferences();
+    const pinned = preferences.pinned.includes(item.id);
+    panel(item.title, body => {
+      option(body, 'Переместить', () => {
+        panel('Переместить: ' + item.title, targets => {
+          description(targets, 'Выберите новую позицию внутри текущего раздела.');
+          const group = countryGroup(item, countryPreferences());
+          const moveBefore = target => {
+            const next = countryPreferences();
+            const ids = group.map(entry => entry.id).filter(id => id !== item.id);
+            ids.splice(target === null ? ids.length : ids.indexOf(target), 0, item.id);
+            if (next.pinned.includes(item.id)) next.pinned = ids;
+            else next.order = next.order.filter(id => !ids.includes(id)).concat(ids);
+            if (saveCountryPreferences(next)) returnToCountry(item);
+          };
+          group.filter(entry => entry.id !== item.id && !preferences.hidden.includes(entry.id)).forEach(entry => option(targets, 'Перед: ' + entry.title, () => moveBefore(entry.id)));
+          option(targets, 'В конец раздела', () => moveBefore(null));
+          option(targets, 'Отмена', () => countryActions(item));
+        }, () => countryActions(item));
+      });
+      option(body, pinned ? 'Открепить' : 'Закрепить наверху', () => {
+        const next = countryPreferences();
+        next.pinned = pinned ? next.pinned.filter(id => id !== item.id) : next.pinned.concat(item.id);
+        next.hidden = next.hidden.filter(id => id !== item.id);
+        if (saveCountryPreferences(next)) returnToCountry(item);
+      });
+      option(body, 'Скрыть', () => {
+        const next = countryPreferences(); next.hidden = Array.from(new Set(next.hidden.concat(item.id)));
+        if (saveCountryPreferences(next)) countryPanel();
+      });
+      option(body, 'Отмена', () => returnToCountry(item));
+    }, () => returnToCountry(item));
+  }
+  function countryHold(node, item) {
+    node.dataset.countryId = item.id;
+    node.setAttribute('aria-haspopup', 'dialog');
+    let timer, consumed = false;
+    const cancel = () => { clearTimeout(timer); };
+    node.addEventListener('countryhold', () => countryActions(item));
+    node.addEventListener('pointerdown', event => {
+      if (event.button !== 0) return;
+      cancel(); consumed = false;
+      timer = setTimeout(() => { consumed = true; countryActions(item); }, 650);
+    });
+    ['pointerup', 'pointerleave', 'pointercancel', 'blur'].forEach(type => node.addEventListener(type, cancel));
+    node.addEventListener('click', event => { if (consumed) { event.preventDefault(); event.stopImmediatePropagation(); consumed = false; } }, true);
+    node.addEventListener('contextmenu', event => { event.preventDefault(); cancel(); if (!consumed) { consumed = true; countryActions(item); } });
+  }
   function countryPanel() {
     const filter = model.state.filters.find(item => item.id === 'country');
     if (!filter) { toast('У этого источника нет фильтра стран'); return; }
-    panel(filter.title, body => filter.options.forEach(item => {
+    const preferences = countryPreferences();
+    const selectable = filter.options.filter(item => !item.heading && !item.separator);
+    const pinned = preferences.pinned.map(id => selectable.find(item => item.id === id)).filter(item => item && !preferences.hidden.includes(item.id));
+    const sorted = [];
+    let group = [];
+    filter.options.forEach(item => {
+      if (item.heading || item.separator) { sorted.push(...orderCountries(group, preferences.order), item); group = []; }
+      else group.push(item);
+    });
+    sorted.push(...orderCountries(group, preferences.order));
+    const visible = sorted.filter((item, index, options) => {
+      if (!item.heading && !item.separator) return !preferences.hidden.includes(item.id) && !pinned.includes(item);
+      // Avoid empty continent headings after hiding all their countries.
+      for (let next = index + 1; next < options.length && !options[next].heading && !options[next].separator; next++) {
+        if (!preferences.hidden.includes(options[next].id) && !pinned.includes(options[next])) return true;
+      }
+      return false;
+    });
+    panel(filter.title, body => {
+      option(body, 'Показать / скрыть страны  ›', countryVisibilityPanel);
+      const all = visible.find(item => item.id === 'all');
+      const entries = (all ? [all] : []).concat(pinned, visible.filter(item => item !== all));
+      entries.forEach(item => {
       if (item.heading || item.separator) { const heading = document.createElement('div'); heading.className = 'group-title'; heading.textContent = item.title; body.appendChild(heading); }
-      else option(body, item.title + (item.id === model.state.country ? '  ✓' : ''), () => { closePanel(); model.chooseCountry(item.id); }, item.id === model.state.country);
-    }), filterPanel);
+      else {
+        const node = option(body, item.title + (item.id === model.state.country ? '  ✓' : ''), () => { closePanel(); model.chooseCountry(item.id); }, item.id === model.state.country);
+        if (item.id !== 'all') countryHold(node, item);
+      }
+      });
+    }, filterPanel);
   }
   function filterPanel() {
     panel('Фильтры', body => {
@@ -145,7 +280,7 @@
   }
   function settingsPanel() {
     panel('Настройки', body => {
-      description(body, 'S Videos + · 0.1.0-alpha.5');
+      description(body, 'S Videos + · 0.1.0-alpha.6');
       option(body, 'Проверить обновления', () => native.call('checkUpdates').catch(error => toast(error.message)));
       option(body, 'Зеркала  ›', mirrorsPanel);
       const proxyEnabled = app.Settings.get('public_proxy', true);
@@ -295,7 +430,10 @@
       if (!event.repeat) {
         enterTarget = event.target; longPressed = false;
         enterTimer = setTimeout(() => {
-          if (enterTarget && enterTarget.classList.contains('card')) { longPressed = true; videoMenu(model.state.items[Number(enterTarget.dataset.index)], Number(enterTarget.dataset.index)); }
+          if (enterTarget && enterTarget.isConnected && document.activeElement === enterTarget) {
+            if (enterTarget.dataset.countryId) { longPressed = true; enterTarget.dispatchEvent(new Event('countryhold')); }
+            else if (enterTarget.classList.contains('card')) { longPressed = true; videoMenu(model.state.items[Number(enterTarget.dataset.index)], Number(enterTarget.dataset.index)); }
+          }
         }, 650);
       }
     }

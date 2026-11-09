@@ -69,4 +69,4 @@ jobs:
         run: |
           cp app/build/outputs/apk/release/app-release.apk S-Videos-Plus.apk
           node scripts/release-metadata.cjs S-Videos-Plus.apk
-          gh release create "$GITHUB_REF_NAME" S-Videos-Plus.apk update.json --prerelease --title "S Videos + ${GITHUB_REF_NAME}" --notes "Системное поле ввода Cookie для клавиатуры Android TV и удалённого ввода Google TV. Без автокоррекции; символы Cookie сохраняются без декодирования; отмена не изменяет сессию. Адаптеры, категории, плеер и сеть не изменены. Проверка с физическим телефоном Google TV не проводилась."
+          gh release create "$GITHUB_REF_NAME" S-Videos-Plus.apk update.json --prerelease --title "S Videos + ${GITHUB_REF_NAME}" --notes "Управление пунктами меню стран: скрытие, закрепление наверху и перемещение внутри раздела. Удержание центральной кнопки/Enter или мыши открывает меню действий. Настройки сохраняются отдельно для каждого источника. Скрытие пункта не исключает видео из каталога. Фильтр этничности не добавлен. Адаптеры, сеть и плеер не изменены. Удержание проверено в браузере, не на физическом ТВ."
