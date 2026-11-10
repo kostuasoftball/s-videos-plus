@@ -129,6 +129,21 @@ catch { ({ chromium } = require('C:/Users/matyugin/.cache/codex-runtimes/codex-p
     await page.keyboard.press('Escape'); await page.keyboard.press('Escape');
     await page.locator('.source').filter({ hasText: 'Chaturbate' }).click();
     await page.waitForFunction(() => document.getElementById('source-name').textContent === 'Chaturbate');
+    await page.locator('.card').nth(5).focus();
+    await page.evaluate(() => SVideosEvent('closed', ''));
+    assert.equal(await page.evaluate(() => document.activeElement.dataset.index), '5');
+    await page.keyboard.press('ArrowLeft');
+    assert.equal(await page.evaluate(() => document.activeElement.dataset.index), '4');
+    await page.keyboard.press('ArrowLeft');
+    assert.equal(await page.evaluate(() => document.activeElement.dataset.source), 'chaturbate');
+    await page.keyboard.press('ArrowRight');
+    assert.equal(await page.evaluate(() => document.activeElement.dataset.index), '4');
+    // Reduced motion bypasses optional Web Animations entirely.
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.locator('#filters').click();
+    assert.equal(await page.locator('#panel').evaluate(node => node.getAnimations().length), 0);
+    await page.keyboard.press('Escape');
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
     await page.locator('.source').filter({ hasText: 'Stripchat' }).click();
     await page.waitForFunction(() => document.getElementById('source-name').textContent === 'Stripchat' && document.querySelectorAll('.card').length > 0);
     await page.locator('.card').first().focus();

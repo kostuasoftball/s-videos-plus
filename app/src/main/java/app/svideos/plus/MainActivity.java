@@ -158,7 +158,11 @@ public final class MainActivity extends Activity {
     }
 
     @SuppressWarnings("deprecation")
-    @Override public void onBackPressed() { if (playback.visible()) playback.close(); else event("back", ""); }
+    @Override public void onBackPressed() { if (playback.visible()) playback.back(); else event("back", ""); }
+    @Override public boolean dispatchKeyEvent(android.view.KeyEvent event) {
+        if (playback != null && playback.handleKeyEvent(event)) return true;
+        return super.dispatchKeyEvent(event);
+    }
     @Override protected void onStop() { super.onStop(); playback.pause(); web.onPause(); }
     @Override protected void onStart() { super.onStart(); if (web != null) web.onResume(); }
     @Override protected void onResume() { super.onResume(); if (updater != null) updater.resume(); }

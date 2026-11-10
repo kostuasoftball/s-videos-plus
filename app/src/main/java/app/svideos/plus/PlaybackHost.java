@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -40,6 +41,8 @@ final class PlaybackHost {
     private final PlayerView playerView;
     private final TextView title;
     private final Button previous;
+    private final LinearLayout bar;
+    private boolean revealingControls;
     private ExoPlayer player;
     private JSONObject video;
     private String quality = "";
@@ -48,11 +51,13 @@ final class PlaybackHost {
     PlaybackHost(Activity activity, FrameLayout root, Events events, SecureStore store) {
         this.activity = activity; this.events = events; this.store = store;
         layer = new FrameLayout(activity); layer.setBackgroundColor(Color.BLACK); layer.setVisibility(View.GONE);
+        layer.setFocusable(true); layer.setFocusableInTouchMode(true);
         root.addView(layer, new FrameLayout.LayoutParams(-1, -1));
         playerView = new PlayerView(activity); playerView.setUseController(true);
         playerView.setControllerShowTimeoutMs(5000); playerView.setShowNextButton(false); playerView.setShowPreviousButton(false);
         layer.addView(playerView, new FrameLayout.LayoutParams(-1, -1));
-        LinearLayout bar = new LinearLayout(activity); bar.setGravity(Gravity.CENTER_VERTICAL); bar.setPadding(dp(22), dp(12), dp(22), dp(12)); bar.setBackgroundColor(0xC018202D);
+        playerView.setControllerAutoShow(false);
+        bar = new LinearLayout(activity); bar.setGravity(Gravity.CENTER_VERTICAL); bar.setPadding(dp(22), dp(12), dp(22), dp(12)); bar.setBackgroundColor(0xC018202D);
         FrameLayout.LayoutParams barParams = new FrameLayout.LayoutParams(-1, -2, Gravity.TOP); layer.addView(bar, barParams);
         title = new TextView(activity); title.setTextColor(Color.WHITE); title.setTextSize(18); title.setSingleLine(true); title.setEllipsize(android.text.TextUtils.TruncateAt.END);
         title.setTypeface(Typeface.DEFAULT, Typeface.BOLD); bar.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
@@ -60,6 +65,10 @@ final class PlaybackHost {
         action(bar, "Следующее", () -> events.send("next", ""));
         action(bar, "Качество", this::qualityMenu);
         action(bar, "Закрыть", this::close);
+        playerView.setControllerVisibilityListener((PlayerView.ControllerVisibilityListener) visibility -> {
+            bar.setVisibility(visibility);
+            if (visibility != View.VISIBLE && visible()) layer.requestFocus();
+        });
     }
 
     private int dp(int size) { return Math.round(size * activity.getResources().getDisplayMetrics().density); }
@@ -82,7 +91,7 @@ final class PlaybackHost {
         firstOpen = !visible();
         load(streams.getString(selected), 0);
         layer.setVisibility(View.VISIBLE);
-        if (firstOpen) previous.requestFocus();
+        if (firstOpen) showControls();
     }
 
     private void load(String url, long position) throws Exception {
@@ -135,8 +144,37 @@ final class PlaybackHost {
     }
 
     boolean visible() { return layer.getVisibility() == View.VISIBLE; }
+    boolean controlsVisible() { return bar.getVisibility() == View.VISIBLE; }
+    void showControls() {
+        playerView.showController(); bar.setVisibility(View.VISIBLE); previous.requestFocus();
+    }
+    void back() {
+        if (controlsVisible()) {
+            playerView.hideController(); bar.setVisibility(View.GONE); layer.requestFocus();
+        } else close();
+    }
+    /** Handle Back before PlayerView can consume it; OK reveals, never pauses invisibly. */
+    boolean handleKeyEvent(KeyEvent event) {
+        if (!visible()) return false;
+        int key = event.getKeyCode();
+        if (key == KeyEvent.KEYCODE_BACK) {
+            if (event.getAction() == KeyEvent.ACTION_UP && !event.isCanceled()) back();
+            return true;
+        }
+        if (key == KeyEvent.KEYCODE_DPAD_CENTER || key == KeyEvent.KEYCODE_ENTER) {
+            if (event.getAction() == KeyEvent.ACTION_DOWN && !controlsVisible()) {
+                revealingControls = true; showControls();
+            }
+            if (revealingControls) {
+                if (event.getAction() == KeyEvent.ACTION_UP) revealingControls = false;
+                return true;
+            }
+        }
+        return false;
+    }
     void pause() { if (player != null) player.pause(); layer.setKeepScreenOn(false); }
     void close() {
+        revealingControls = false;
         release(); layer.setVisibility(View.GONE); events.send("closed", "");
     }
     void release() {

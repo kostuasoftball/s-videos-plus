@@ -42,11 +42,21 @@
     node.addEventListener('click', callback); return node;
   }
   function focus(node) { if (node && node.isConnected) { node.focus({ preventScroll: true }); node.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } }
+  function appear(node, slide = false) {
+    if (!node.animate || (global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+    if (node._appearance) node._appearance.cancel();
+    node._appearance = node.animate(slide ? [{ opacity: 0, transform: 'translateX(12px)' }, { opacity: 1, transform: 'translateX(0)' }] : [{ opacity: 0.4 }, { opacity: 1 }], { duration: 150, easing: 'ease-out' });
+  }
+  function currentSourceButton() {
+    return Array.from(document.querySelectorAll('.source')).find(node => node.dataset.source === model.state.source);
+  }
   function panel(title, draw, back) {
+    const wasOpen = modal;
     if (!modal) restoreFocus = document.activeElement;
     modal = true; panelBack = back || null; $('modal-layer').hidden = false;
     $('panel-title').textContent = title; replace($('panel-body'));
     draw($('panel-body'));
+    appear(wasOpen ? $('panel-body') : $('panel'), !wasOpen);
     focus($('panel-body').querySelector('.selected, button, input, textarea') || $('panel-close'));
   }
   function closePanel() {
@@ -73,7 +83,10 @@
     const key = JSON.stringify([state.source, state.category, state.categories]);
     if (sourcesKey !== key) {
       sourcesKey = key;
-      replace($('sources'), ...sourceIds.map(id => button(app.getAdapter(id).getName(), 'source' + (state.source === id ? ' active' : ''), () => selectSource(id))));
+      replace($('sources'), ...sourceIds.map(id => {
+        const node = button(app.getAdapter(id).getName(), 'source' + (state.source === id ? ' active' : ''), () => selectSource(id));
+        node.dataset.source = id; return node;
+      }));
       replace($('categories'), ...state.categories.map(item => button(item.title, 'category' + (state.category === item.id ? ' active' : ''), () => model.chooseCategory(item.id))));
     }
     const newKey = JSON.stringify([state.source, state.category, state.country, state.query, state.favorites, state.items.map(item => item.id)]);
@@ -100,6 +113,7 @@
         const country = document.createElement('span'); country.textContent = item.country ? app.AdapterUtils.countryLabel(item.country) : '';
         meta.appendChild(country); card.append(poster, title, meta); return card;
       }));
+      appear($('cards'));
       if (!modal && hadCardFocus && state.items.length) focus(Array.from(document.querySelectorAll('.card')).find(card => card.dataset.id === priorId) || document.querySelector('.card'));
       if (state.page === 1) $('catalog').scrollTop = 0;
     }
@@ -280,7 +294,7 @@
   }
   function settingsPanel() {
     panel('Настройки', body => {
-      description(body, 'S Videos + · 0.1.0-alpha.6');
+      description(body, 'S Videos + · 0.1.0-alpha.7');
       option(body, 'Проверить обновления', () => native.call('checkUpdates').catch(error => toast(error.message)));
       option(body, 'Зеркала  ›', mirrorsPanel);
       const proxyEnabled = app.Settings.get('public_proxy', true);
@@ -375,6 +389,7 @@
       if (!Object.keys(streams).length) { videoMenu(item, index); throw new Error('Прямой поток недоступен. Можно открыть страницу источника.'); }
       await native.call('play', { title: video.title || item.title, streams, mimeType: video.mimeType || '', headers: video.headers || {} });
       playing = true; playIndex = index;
+      lastFocusedCard = String(item.id);
     } catch (error) { toast(error.message || 'Не удалось открыть видео'); }
     finally { if (token === playVersion) { playBusy = false; $('busy-text').textContent = 'Загрузка…'; $('busy').hidden = !model.state.busy; } }
   }
@@ -397,10 +412,13 @@
     if (!modal && current && current.classList.contains('card')) {
       const index = Number(current.dataset.index);
       if (direction === 'right' && (index % 4 === 3 || index === model.state.items.length - 1)) return filterPanel();
-      if (direction === 'left' && index % 4 === 0) return focus(document.querySelector('.source.active'));
+      if (direction === 'left') return focus(index % 4 === 0 ? currentSourceButton() : document.querySelectorAll('.card')[index - 1]);
       if (direction === 'up' && index < 4) return focus(document.querySelector('.category.active') || $('search'));
       if (direction === 'down' && index + 4 < model.state.items.length) return focus(document.querySelectorAll('.card')[index + 4]);
       if (direction === 'up' && index >= 4) return focus(document.querySelectorAll('.card')[index - 4]);
+    }
+    if (!modal && current && current.classList.contains('source') && direction === 'right') {
+      return focus(Array.from(document.querySelectorAll('.card')).find(card => card.dataset.id === lastFocusedCard) || document.querySelector('.card'));
     }
     const root = modal ? $('panel') : $('screen');
     const candidates = Array.from(root.querySelectorAll('button:not(:disabled),input,textarea')).filter(node => !node.closest('[hidden]') && node.offsetWidth > 0 && node.id !== 'scrim' && node !== current);

@@ -10,7 +10,7 @@
 
 ## Установка
 
-**[Скачать APK 0.1.0-alpha.6](https://github.com/kostuasoftball/s-videos-plus/releases/download/v0.1.0-alpha.6/S-Videos-Plus.apk)**
+**[Скачать APK 0.1.0-alpha.7](https://github.com/kostuasoftball/s-videos-plus/releases/download/v0.1.0-alpha.7/S-Videos-Plus.apk)**
 · [Инструкция установки](INSTALL.md)
 
 Устанавливается **APK**, а не JavaScript-ссылкой в Lampa. Lampa для запуска не нужна.
