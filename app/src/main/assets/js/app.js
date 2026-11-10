@@ -7,6 +7,11 @@
   let catalogKey = '', sourcesKey = '', toastTimer, queryText = '', lastFocusedCard = '';
   let panelBack = null;
   const sourceIds = ['stripchat', 'chaturbate', 'bongacams', 'runetki', 'pornhub', 'xvideos', 'xhamster', 'efukt'];
+  function visibleSourceIds() {
+    const hidden = app.Settings.get('hidden_sources', []);
+    const visible = sourceIds.filter(id => !Array.isArray(hidden) || !hidden.includes(id));
+    return visible.length ? visible : [sourceIds[0]];
+  }
   if (demo) {
     $('demo-label').hidden = false;
     sourceIds.forEach(id => {
@@ -80,10 +85,10 @@
     $('section-title').textContent = state.favorites ? 'Избранные модели' : state.query ? 'Поиск: ' + state.query : (category && category.title) || 'Каталог';
     $('breadcrumb').textContent = state.query ? 'Каталог / Поиск' : 'Каталог';
     $('busy').hidden = !state.busy;
-    const key = JSON.stringify([state.source, state.category, state.categories]);
+    const key = JSON.stringify([state.source, state.category, state.categories, visibleSourceIds()]);
     if (sourcesKey !== key) {
       sourcesKey = key;
-      replace($('sources'), ...sourceIds.map(id => {
+      replace($('sources'), ...visibleSourceIds().map(id => {
         const node = button(app.getAdapter(id).getName(), 'source' + (state.source === id ? ' active' : ''), () => selectSource(id));
         node.dataset.source = id; return node;
       }));
@@ -296,6 +301,7 @@
     panel('Настройки', body => {
       description(body, 'S Videos + · 0.1.0-alpha.7');
       option(body, 'Проверить обновления', () => native.call('checkUpdates').catch(error => toast(error.message)));
+      option(body, 'Источники  ›', sourcesPanel);
       option(body, 'Зеркала  ›', mirrorsPanel);
       const proxyEnabled = app.Settings.get('public_proxy', true);
       const proxyName = proxyEnabled ? (app.Settings.get('proxy_mode', 'auto') === 'force' ? 'Принудительно' : 'Авто') : 'Выключены';
@@ -305,6 +311,27 @@
       option(body, 'Очистить кэш каталогов', () => { app.Api.cache.clear(); toast('Кэш очищен'); });
       option(body, 'О приложении', () => panel('S Videos +', panelBody => description(panelBody, 'Отдельное приложение Android TV. Восемь независимых адаптеров, интерфейс Calm и нативный плеер Media3. Данные сайтов могут изменяться. Исходники плагина Lampa не изменяются.'), settingsPanel));
     });
+  }
+  function sourcesPanel() {
+    panel('Источники', body => {
+      description(body, 'Скрытые источники исчезают только из бокового меню. Здесь их всегда можно вернуть. Хотя бы один источник должен оставаться видимым.');
+      const visible = visibleSourceIds();
+      sourceIds.forEach(id => {
+        const shown = visible.includes(id);
+        const node = option(body, app.getAdapter(id).getName() + (shown ? ' — показывать' : ' — скрыт'), () => {
+          if (shown && visible.length === 1) return toast('Оставьте хотя бы один источник');
+          const nextVisible = shown ? visible.filter(value => value !== id) : sourceIds.filter(value => visible.includes(value) || value === id);
+          try { app.Settings.set('hidden_sources', sourceIds.filter(value => !nextVisible.includes(value))); }
+          catch (error) { toast('Не удалось сохранить настройку'); return; }
+          if (!nextVisible.includes(model.state.source)) model.source(nextVisible[0]).catch(error => toast(error.message));
+          else render(model.state);
+          sourcesPanel();
+          focus(Array.from($('panel-body').querySelectorAll('button')).find(button => button.dataset.sourceOption === id));
+        });
+        node.dataset.sourceOption = id;
+        node.setAttribute('aria-pressed', String(shown));
+      });
+    }, settingsPanel);
   }
   function mirrorsPanel() {
     panel('Зеркала', body => {
@@ -487,6 +514,6 @@
   $('next-page').addEventListener('click', () => model.nextPage());
   window.addEventListener('resize', scale); scale(); clock(); setInterval(clock, 30000);
   const initial = app.Settings.get('last_source', 'stripchat');
-  model.source(sourceIds.includes(initial) ? initial : 'stripchat').then(() => focus(document.querySelector('.card, .source.active'))).catch(error => toast(error.message));
+  model.source(visibleSourceIds().includes(initial) ? initial : visibleSourceIds()[0]).then(() => focus(document.querySelector('.card, .source.active'))).catch(error => toast(error.message));
   global.SVideosUI = { model, move, filterPanel, back };
 })(window);

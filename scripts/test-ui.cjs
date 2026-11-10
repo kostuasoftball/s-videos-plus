@@ -151,7 +151,29 @@ catch { ({ chromium } = require('C:/Users/matyugin/.cache/codex-runtimes/codex-p
     await page.screenshot({ path: path.join(__dirname, '../test-results/catalog.png') });
     await page.locator('#filters').click(); await page.getByRole('button', { name: 'Страна / национальность  ›' }).click();
     await page.screenshot({ path: path.join(__dirname, '../test-results/countries.png') });
+    await page.keyboard.press('Escape'); await page.keyboard.press('Escape');
+    await page.locator('#settings').click();
+    await page.getByRole('button', { name: 'Источники  ›', exact: true }).click();
+    await page.getByRole('button', { name: 'Chaturbate — показывать', exact: true }).click();
+    assert.equal(await page.locator('.source[data-source="chaturbate"]').count(), 0);
+    await page.reload(); await page.locator('.card').first().waitFor();
+    assert.equal(await page.locator('.source[data-source="chaturbate"]').count(), 0);
+    await page.locator('#settings').click();
+    await page.getByRole('button', { name: 'Источники  ›', exact: true }).click();
+    await page.getByRole('button', { name: 'Chaturbate — скрыт', exact: true }).click();
+    assert.equal(await page.locator('.source[data-source="chaturbate"]').count(), 1);
+    // Hiding the active source selects a visible fallback, never an empty menu.
+    await page.getByRole('button', { name: 'Stripchat — показывать', exact: true }).click();
+    await page.waitForFunction(() => SVideosUI.model.state.source === 'chaturbate');
+    assert.equal(await page.locator('.source.active').getAttribute('data-source'), 'chaturbate');
+    for (const id of await page.locator('[data-source-option][aria-pressed="true"]').evaluateAll(nodes => nodes.map(node => node.dataset.sourceOption))) {
+      if (id !== 'chaturbate') await page.locator('[data-source-option="' + id + '"]').click();
+    }
+    await page.getByRole('button', { name: 'Chaturbate — показывать', exact: true }).click();
+    assert.equal(await page.locator('.source').count(), 1);
+    for (const id of await page.locator('[data-source-option][aria-pressed="false"]').evaluateAll(nodes => nodes.map(node => node.dataset.sourceOption))) await page.locator('[data-source-option="' + id + '"]').click();
+    assert.equal(await page.locator('.source').count(), 8);
     assert.deepEqual(errors, []);
-    console.log('PASS: four columns, D-pad, filters, hidden/pinned country entries and restart persistence, search/back, accounts, native session entry bridge/save/delete without secret display, mirrors, source switching. No JS runtime errors.');
+    console.log('PASS: four columns, D-pad, return focus to active source/card, reduced motion, filters, country order/restart persistence, search/back, accounts, native session entry, mirrors, source visibility/restart/fallback/last-source guard. No JS runtime errors.');
   } finally { if (browser) await browser.close(); await new Promise(resolve => server.close(resolve)); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

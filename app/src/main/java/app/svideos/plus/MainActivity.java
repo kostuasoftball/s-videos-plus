@@ -72,7 +72,7 @@ public final class MainActivity extends Activity {
                         Object decoded = new org.json.JSONTokener(result).nextValue();
                         JSONObject ready = new JSONObject(String.valueOf(decoded));
                         Log.i("SVideosUI", "Packaged page readiness: " + ready);
-                        if (ready.optBoolean("booted") && ready.optInt("sources") == 8) view.setContentDescription("S Videos + · каталог готов");
+                        if (ready.optBoolean("booted") && ready.optInt("sources") > 0) view.setContentDescription("S Videos + · каталог готов");
                     } catch (Exception ignored) { Log.e("SVideosUI", "Packaged page readiness unavailable"); }
                 });
             }
