@@ -72,9 +72,27 @@
   function option(body, label, callback, selected = false) {
     const node = button(label, 'option' + (selected ? ' selected' : ''), callback); body.appendChild(node); return node;
   }
+  function renderSourceButtons(selected) {
+    replace($('sources'), ...visibleSourceIds().map(id => {
+      const node = button(app.getAdapter(id).getName(), 'source' + (selected === id ? ' active' : ''), () => selectSource(id));
+      node.dataset.source = id; return node;
+    }));
+  }
+  function renderLanding() {
+    renderSourceButtons('');
+    $('source-name').textContent = 'S Videos +';
+    $('source-description').textContent = 'Выберите источник слева и нажмите OK';
+    $('section-title').textContent = 'Выберите источник';
+    $('breadcrumb').textContent = 'Главная';
+    $('filter-summary').textContent = '';
+    ['search', 'filters', 'favorites', 'next-page', 'busy'].forEach(id => { $(id).hidden = true; });
+    replace($('categories')); replace($('cards'));
+    $('empty').hidden = false; $('empty').textContent = 'Каталог загрузится после выбора источника.';
+  }
   function render(state) {
     const adapter = app.getAdapter(state.source);
-    if (!adapter) return;
+    if (!adapter) { renderLanding(); return; }
+    $('search').hidden = false; $('filters').hidden = false;
     $('source-name').textContent = adapter.getName();
     $('source-description').textContent = ['stripchat', 'chaturbate', 'bongacams', 'runetki'].includes(state.source) ? 'Прямые трансляции' : 'Видеокаталог';
     $('favorites').hidden = !adapter.getCapabilities().favorites;
@@ -88,10 +106,7 @@
     const key = JSON.stringify([state.source, state.category, state.categories, visibleSourceIds()]);
     if (sourcesKey !== key) {
       sourcesKey = key;
-      replace($('sources'), ...visibleSourceIds().map(id => {
-        const node = button(app.getAdapter(id).getName(), 'source' + (state.source === id ? ' active' : ''), () => selectSource(id));
-        node.dataset.source = id; return node;
-      }));
+      renderSourceButtons(state.source);
       replace($('categories'), ...state.categories.map(item => button(item.title, 'category' + (state.category === item.id ? ' active' : ''), () => model.chooseCategory(item.id))));
     }
     const newKey = JSON.stringify([state.source, state.category, state.country, state.query, state.favorites, state.items.map(item => item.id)]);
@@ -323,7 +338,7 @@
           const nextVisible = shown ? visible.filter(value => value !== id) : sourceIds.filter(value => visible.includes(value) || value === id);
           try { app.Settings.set('hidden_sources', sourceIds.filter(value => !nextVisible.includes(value))); }
           catch (error) { toast('Не удалось сохранить настройку'); return; }
-          if (!nextVisible.includes(model.state.source)) model.source(nextVisible[0]).catch(error => toast(error.message));
+          if (model.state.source && !nextVisible.includes(model.state.source)) model.source(nextVisible[0]).catch(error => toast(error.message));
           else render(model.state);
           sourcesPanel();
           focus(Array.from($('panel-body').querySelectorAll('button')).find(button => button.dataset.sourceOption === id));
@@ -513,7 +528,7 @@
   $('favorites').addEventListener('click', () => { model.state.favorites = true; model.state.query = ''; model.load(); });
   $('next-page').addEventListener('click', () => model.nextPage());
   window.addEventListener('resize', scale); scale(); clock(); setInterval(clock, 30000);
-  const initial = app.Settings.get('last_source', 'stripchat');
-  model.source(visibleSourceIds().includes(initial) ? initial : visibleSourceIds()[0]).then(() => focus(document.querySelector('.card, .source.active'))).catch(error => toast(error.message));
+  renderLanding();
+  focus(document.querySelector('.source'));
   global.SVideosUI = { model, move, filterPanel, back };
 })(window);

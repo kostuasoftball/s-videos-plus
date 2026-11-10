@@ -15,8 +15,17 @@ catch { ({ chromium } = require('C:/Users/matyugin/.cache/codex-runtimes/codex-p
     const page = await browser.newPage({ viewport: { width: 1600, height: 900 } });
     await page.addInitScript(() => { Element.prototype.replaceChildren = undefined; });
     page.on('pageerror', error => errors.push(error.message));
+    async function selectFirstSource() {
+      await page.locator('.source').first().waitFor();
+      assert.equal(await page.locator('.source.active').count(), 0);
+      assert.equal(await page.locator('.card').count(), 0);
+      assert.equal(await page.evaluate(() => SVideosUI.model.sequence), 0);
+      assert.equal(await page.evaluate(() => document.activeElement.dataset.source), await page.locator('.source').first().getAttribute('data-source'));
+      await page.keyboard.press('Enter');
+      await page.locator('.card').first().waitFor();
+    }
     await page.goto(`http://127.0.0.1:${server.address().port}/?demo=1`);
-    await page.locator('.card').first().waitFor();
+    await selectFirstSource();
     await page.locator('.card').first().focus();
     const geometry = await page.locator('.card').evaluateAll(nodes => nodes.slice(0, 5).map(node => ({ x: node.getBoundingClientRect().x, y: node.getBoundingClientRect().y })));
     assert.equal(new Set(geometry.slice(0, 4).map(rect => rect.y)).size, 1);
@@ -39,7 +48,7 @@ catch { ({ chromium } = require('C:/Users/matyugin/.cache/codex-runtimes/codex-p
     assert.equal(await page.getByRole('button', { name: 'Японки', exact: true }).count(), 1);
     assert.equal(await page.locator('#panel-body button').nth(2).textContent(), 'Японки');
     // Restart restores preferences. No live source requests in demo mode.
-    await page.reload(); await page.locator('.card').first().waitFor();
+    await page.reload(); await selectFirstSource();
     await page.locator('#filters').click();
     await page.getByRole('button', { name: 'Страна / национальность  ›' }).click();
     assert.equal(await page.getByRole('button', { name: 'Француженки', exact: true }).count(), 0);
@@ -81,7 +90,7 @@ catch { ({ chromium } = require('C:/Users/matyugin/.cache/codex-runtimes/codex-p
     await page.getByRole('button', { name: 'В конец раздела', exact: true }).click();
     const order = await page.evaluate(() => SisiPlus.Settings.get('country_menu_stripchat').order);
     assert.equal(order[order.length - 1], 'jp');
-    await page.reload(); await page.locator('.card').first().waitFor();
+    await page.reload(); await selectFirstSource();
     assert.deepEqual(await page.evaluate(() => SisiPlus.Settings.get('country_menu_stripchat').order), order);
     await page.locator('#filters').click();
     await page.getByRole('button', { name: 'Страна / национальность  ›' }).click();
@@ -101,7 +110,7 @@ catch { ({ chromium } = require('C:/Users/matyugin/.cache/codex-runtimes/codex-p
     await page.getByRole('button', { name: 'www.xvideos.es', exact: true }).click();
     assert.equal(await page.locator('.option.selected').textContent(), 'www.xvideos.es');
     assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('svideos_settings')).mirror_xvideos), 'https://www.xvideos.es');
-    await page.reload(); await page.locator('.card').first().waitFor();
+    await page.reload(); await selectFirstSource();
     await page.locator('#settings').click();
     await page.getByRole('button', { name: 'Зеркала  ›', exact: true }).click();
     await page.getByRole('button', { name: /^Xvideos: www.xvideos.es/ }).click();
@@ -156,7 +165,7 @@ catch { ({ chromium } = require('C:/Users/matyugin/.cache/codex-runtimes/codex-p
     await page.getByRole('button', { name: 'Источники  ›', exact: true }).click();
     await page.getByRole('button', { name: 'Chaturbate — показывать', exact: true }).click();
     assert.equal(await page.locator('.source[data-source="chaturbate"]').count(), 0);
-    await page.reload(); await page.locator('.card').first().waitFor();
+    await page.reload(); await selectFirstSource();
     assert.equal(await page.locator('.source[data-source="chaturbate"]').count(), 0);
     await page.locator('#settings').click();
     await page.getByRole('button', { name: 'Источники  ›', exact: true }).click();
