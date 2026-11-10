@@ -54,6 +54,8 @@ final class PlaybackHost {
         layer.setFocusable(true); layer.setFocusableInTouchMode(true);
         root.addView(layer, new FrameLayout.LayoutParams(-1, -1));
         playerView = new PlayerView(activity); playerView.setUseController(true);
+        // Keep both HUD layers synchronous, including rapid Back -> OK sequences.
+        playerView.setControllerAnimationEnabled(false);
         playerView.setControllerShowTimeoutMs(5000); playerView.setShowNextButton(false); playerView.setShowPreviousButton(false);
         layer.addView(playerView, new FrameLayout.LayoutParams(-1, -1));
         playerView.setControllerAutoShow(false);
