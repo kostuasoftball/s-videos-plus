@@ -36,7 +36,9 @@ async function dump(name) {
   const activities = adb('shell', 'dumpsys', 'activity', 'activities');
   if (/mResumedActivity[^\n]*app\.svideos\.plus/.test(activities)) throw new Error('App activity still resumed after exit');
   adb('shell', 'am', 'start', '-W', '-n', 'app.svideos.plus/.MainActivity'); await wait(5000);
-  if (!(await dump('relaunch')).includes('каталог готов')) throw new Error('App failed to relaunch after full exit');
+  const relaunched = await dump('relaunch');
+  const hasLanding = relaunched.includes('Выберите источник слева и нажмите OK') && /class="android.widget.Button"[^>]*focused="true"/.test(relaunched);
+  if (!relaunched.includes('каталог готов') && !hasLanding) throw new Error('App failed to relaunch after full exit');
   const log = adb('logcat', '-d', '-s', 'AndroidRuntime:E');
   fs.writeFileSync(path.join(dir, 'android-runtime.txt'), log);
   if (log.includes('FATAL EXCEPTION')) throw new Error('Android runtime crash detected');

@@ -327,7 +327,7 @@
   }
   function settingsPanel() {
     panel('Настройки', body => {
-      description(body, 'S Videos + · 0.1.0-alpha.8');
+      description(body, 'S Videos + · 0.1.0-alpha.9');
       option(body, 'Проверить обновления', () => native.call('checkUpdates').catch(error => toast(error.message)));
       option(body, 'Источники  ›', sourcesPanel);
       option(body, 'Зеркала  ›', mirrorsPanel);
