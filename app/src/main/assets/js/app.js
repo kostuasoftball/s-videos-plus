@@ -6,6 +6,9 @@
   let modal = false, restoreFocus = null, playing = false, playIndex = -1, playVersion = 0, playBusy = false;
   let catalogKey = '', sourcesKey = '', toastTimer, queryText = '', lastFocusedCard = '';
   let panelBack = null;
+  let closeTimer, exitCount = 0, exitStarted = 0, exiting = false;
+  function resetExit() { exitCount = 0; exitStarted = 0; }
+  function reducedMotion() { return global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches; }
   const sourceIds = ['stripchat', 'chaturbate', 'bongacams', 'runetki', 'pornhub', 'xvideos', 'xhamster', 'efukt'];
   function visibleSourceIds() {
     const hidden = app.Settings.get('hidden_sources', []);
@@ -48,14 +51,15 @@
   }
   function focus(node) { if (node && node.isConnected) { node.focus({ preventScroll: true }); node.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } }
   function appear(node, slide = false) {
-    if (!node.animate || (global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
-    if (node._appearance) node._appearance.cancel();
-    node._appearance = node.animate(slide ? [{ opacity: 0, transform: 'translateX(12px)' }, { opacity: 1, transform: 'translateX(0)' }] : [{ opacity: 0.4 }, { opacity: 1 }], { duration: 150, easing: 'ease-out' });
+    if (reducedMotion()) { node.removeAttribute('data-motion'); return; }
+    node._motionToggle = !node._motionToggle;
+    node.dataset.motion = (slide ? 'slide-' : 'fade-') + (node._motionToggle ? 'a' : 'b');
   }
   function currentSourceButton() {
     return Array.from(document.querySelectorAll('.source')).find(node => node.dataset.source === model.state.source);
   }
   function panel(title, draw, back) {
+    resetExit(); clearTimeout(closeTimer); $('modal-layer').classList.remove('closing');
     const wasOpen = modal;
     if (!modal) restoreFocus = document.activeElement;
     modal = true; panelBack = back || null; $('modal-layer').hidden = false;
@@ -65,8 +69,17 @@
     focus($('panel-body').querySelector('.selected, button, input, textarea') || $('panel-close'));
   }
   function closePanel() {
-    modal = false; panelBack = null; $('modal-layer').hidden = true;
-    focus(restoreFocus && restoreFocus.isConnected ? restoreFocus : document.querySelector('.card, .source.active'));
+    if (!modal || $('modal-layer').classList.contains('closing')) return;
+    resetExit(); modal = false; panelBack = null;
+    const finish = () => {
+      modal = false; panelBack = null; $('modal-layer').hidden = true;
+      $('modal-layer').classList.remove('closing');
+      if ($('modal-layer').contains(document.activeElement) || document.activeElement === document.body) {
+        focus(restoreFocus && restoreFocus.isConnected ? restoreFocus : document.querySelector('.card, .source.active, .source'));
+      }
+    };
+    if (reducedMotion()) finish();
+    else { $('modal-layer').classList.add('closing'); closeTimer = setTimeout(finish, 150); }
   }
   function description(body, message) { const p = document.createElement('p'); p.className = 'panel-description'; p.textContent = message; body.appendChild(p); }
   function option(body, label, callback, selected = false) {
@@ -314,7 +327,7 @@
   }
   function settingsPanel() {
     panel('Настройки', body => {
-      description(body, 'S Videos + · 0.1.0-alpha.7');
+      description(body, 'S Videos + · 0.1.0-alpha.8');
       option(body, 'Проверить обновления', () => native.call('checkUpdates').catch(error => toast(error.message)));
       option(body, 'Источники  ›', sourcesPanel);
       option(body, 'Зеркала  ›', mirrorsPanel);
@@ -444,10 +457,17 @@
     play(next);
   }
   function back() {
+    if ($('modal-layer').classList.contains('closing') || exiting) return;
     if (modal) { if (panelBack) panelBack(); else closePanel(); return; }
     if (playBusy) { ++playVersion; playBusy = false; $('busy').hidden = true; return; }
     if (model.state.query || model.state.favorites) { model.state.favorites = false; model.search(''); return; }
-    panel('Выйти из S Videos +?', body => { option(body, 'Остаться', closePanel); option(body, 'Выйти', () => native.call('exit').catch(error => toast(error.message))); });
+    if (playing) { resetExit(); return; }
+    const now = Date.now();
+    if (!exitCount || now - exitStarted > 2000) { exitCount = 0; exitStarted = now; }
+    exitCount++;
+    if (exitCount < 3) return toast('Для выхода нажмите «Назад» ещё ' + (3 - exitCount) + ' раз');
+    resetExit(); exiting = true;
+    native.call('exit').catch(error => toast(error.message)).finally(() => { exiting = false; });
   }
   function move(direction) {
     const current = document.activeElement;
@@ -479,7 +499,8 @@
   }
   let enterTimer, enterTarget, longPressed = false;
   document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' || event.key === 'BrowserBack') { event.preventDefault(); back(); return; }
+    if (event.key === 'Escape' || event.key === 'BrowserBack') { event.preventDefault(); if (!event.repeat) back(); return; }
+    resetExit();
     const input = /^(INPUT|TEXTAREA)$/.test(event.target.tagName);
     if (event.key.startsWith('Arrow')) {
       if (input && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) return;
@@ -505,6 +526,7 @@
     enterTarget = null;
   });
   global.SVideosEvent = function (type, detail) {
+    if (type !== 'back') resetExit();
     if (type === 'sessionInput') {
       try {
         const data = JSON.parse(detail);
@@ -524,6 +546,7 @@
     if (type === 'storageError') toast('Не удалось сохранить настройку на устройстве');
   };
   $('search').addEventListener('click', searchPanel); $('filters').addEventListener('click', filterPanel);
+  document.addEventListener('click', resetExit, true);
   $('settings').addEventListener('click', settingsPanel); $('panel-close').addEventListener('click', closePanel); $('scrim').addEventListener('click', closePanel);
   $('favorites').addEventListener('click', () => { model.state.favorites = true; model.state.query = ''; model.load(); });
   $('next-page').addEventListener('click', () => model.nextPage());

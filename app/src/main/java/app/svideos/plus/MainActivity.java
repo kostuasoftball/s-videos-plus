@@ -151,7 +151,12 @@ public final class MainActivity extends Activity {
                     Uri url = Uri.parse(data.getString("url"));
                     if (!"https".equals(url.getScheme()) || url.getHost() == null) throw new IllegalArgumentException("Некорректный адрес");
                     runOnUiThread(() -> { try { startActivity(new Intent(Intent.ACTION_VIEW, url)); result(id, true, true, 0); } catch (Exception error) { result(id, false, "На устройстве нет совместимого браузера", 0); } });
-                } else if (method.equals("exit")) runOnUiThread(() -> { result(id, true, true, 0); finish(); });
+                } else if (method.equals("exit")) runOnUiThread(() -> {
+                    playback.release();
+                    result(id, true, true, 0);
+                    Log.i("SVideosUI", "Explicit exit: removing application task");
+                    finishAndRemoveTask();
+                });
                 else throw new IllegalArgumentException("Неизвестная команда");
             } catch (Exception error) { result(id, false, "Не удалось выполнить действие", 0); }
         }

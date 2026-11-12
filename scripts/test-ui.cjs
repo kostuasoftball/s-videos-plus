@@ -13,7 +13,7 @@ catch { ({ chromium } = require('C:/Users/matyugin/.cache/codex-runtimes/codex-p
   try {
     browser = await chromium.launch({ headless: true });
     const page = await browser.newPage({ viewport: { width: 1600, height: 900 } });
-    await page.addInitScript(() => { Element.prototype.replaceChildren = undefined; });
+    await page.addInitScript(() => { Element.prototype.replaceChildren = undefined; Element.prototype.animate = undefined; });
     page.on('pageerror', error => errors.push(error.message));
     async function selectFirstSource() {
       await page.locator('.source').first().waitFor();
@@ -27,7 +27,7 @@ catch { ({ chromium } = require('C:/Users/matyugin/.cache/codex-runtimes/codex-p
     await page.goto(`http://127.0.0.1:${server.address().port}/?demo=1`);
     await selectFirstSource();
     await page.locator('.card').first().focus();
-    const geometry = await page.locator('.card').evaluateAll(nodes => nodes.slice(0, 5).map(node => ({ x: node.getBoundingClientRect().x, y: node.getBoundingClientRect().y })));
+    const geometry = await page.locator('.card').evaluateAll(nodes => nodes.slice(0, 5).map(node => ({ x: node.offsetLeft, y: node.offsetTop })));
     assert.equal(new Set(geometry.slice(0, 4).map(rect => rect.y)).size, 1);
     assert.ok(geometry[4].y > geometry[0].y);
     await page.keyboard.press('ArrowDown');
@@ -96,11 +96,13 @@ catch { ({ chromium } = require('C:/Users/matyugin/.cache/codex-runtimes/codex-p
     await page.getByRole('button', { name: 'Страна / национальность  ›' }).click();
     await page.getByRole('button', { name: 'Японки', exact: true }).click();
     assert.equal(await page.locator('#filter-summary').textContent(), 'Японки');
+    await page.locator('#modal-layer').waitFor({ state: 'hidden' });
     assert.equal(await page.locator('#modal-layer').isHidden(), true);
     await page.locator('#search').click();
     await page.getByRole('searchbox').fill('Aurora');
     await page.getByRole('searchbox').press('Enter');
     await page.waitForFunction(() => document.getElementById('section-title').textContent.includes('Aurora'));
+    await page.locator('#modal-layer').waitFor({ state: 'hidden' });
     await page.keyboard.press('Escape');
     assert.equal(await page.locator('#modal-layer').isHidden(), true);
     await page.locator('#settings').click();
@@ -182,6 +184,28 @@ catch { ({ chromium } = require('C:/Users/matyugin/.cache/codex-runtimes/codex-p
     assert.equal(await page.locator('.source').count(), 1);
     for (const id of await page.locator('[data-source-option][aria-pressed="false"]').evaluateAll(nodes => nodes.map(node => node.dataset.sourceOption))) await page.locator('[data-source-option="' + id + '"]').click();
     assert.equal(await page.locator('.source').count(), 8);
+    await page.reload();
+    await page.locator('.source').first().waitFor();
+    assert.equal(await page.locator('.brand-logo').evaluate(node => node.complete && node.naturalWidth > 0), true);
+    await page.evaluate(() => { window.exitCalls = 0; SVideos.call = async method => { if (method === 'exit') window.exitCalls++; return true; }; });
+    await page.keyboard.press('Escape'); await page.keyboard.press('Escape');
+    assert.equal(await page.evaluate(() => window.exitCalls), 0);
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Escape');
+    assert.equal(await page.evaluate(() => window.exitCalls), 0);
+    await page.waitForTimeout(2100);
+    await page.keyboard.press('Escape'); await page.keyboard.press('Escape');
+    assert.equal(await page.evaluate(() => window.exitCalls), 0);
+    await page.keyboard.press('Escape');
+    assert.equal(await page.evaluate(() => window.exitCalls), 1);
+    await page.locator('#settings').click();
+    assert.match(await page.locator('#panel').evaluate(node => getComputedStyle(node).animationName), /panel-in/);
+    await page.keyboard.press('Escape');
+    assert.equal(await page.locator('#modal-layer').evaluate(node => node.classList.contains('closing')), true);
+    await page.locator('#modal-layer').waitFor({ state: 'hidden' });
+    assert.equal(await page.evaluate(() => window.exitCalls), 1);
+    await page.keyboard.down('Escape'); await page.keyboard.down('Escape'); await page.keyboard.down('Escape'); await page.keyboard.up('Escape');
+    assert.equal(await page.evaluate(() => window.exitCalls), 1);
     assert.deepEqual(errors, []);
     console.log('PASS: four columns, D-pad, return focus to active source/card, reduced motion, filters, country order/restart persistence, search/back, accounts, native session entry, mirrors, source visibility/restart/fallback/last-source guard. No JS runtime errors.');
   } finally { if (browser) await browser.close(); await new Promise(resolve => server.close(resolve)); }

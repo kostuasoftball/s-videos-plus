@@ -22,17 +22,23 @@ async function dump(name) {
   const first = await dump('launch');
   if (!first.includes('каталог готов')) throw new Error('Packaged WebView UI did not report readiness');
   adb('shell', 'input', 'keyevent', '4'); await wait(1000);
-  const exit = await dump('back');
+  await dump('back');
   // WebView accessibility descendants may not be exported by a headless emulator.
   // The process and a subsequent Back are checked below; screenshots record the state.
   fs.writeFileSync(path.join(dir, 'android-back.png'), execFileSync('adb', ['exec-out', 'screencap', '-p'], { timeout: 30000 }));
-  adb('shell', 'input', 'keyevent', '4'); await wait(1000);
+  await wait(2100);
   if (!adb('shell', 'pidof', 'app.svideos.plus').trim()) throw new Error('Back unexpectedly terminated the app');
   const uiLog = adb('logcat', '-d', '-s', 'SVideosUI:I');
   fs.writeFileSync(path.join(dir, 'android-webview-log.txt'), uiLog);
-  if (!/panelOpen[^a-zA-Z]*true/.test(uiLog) || !/panelOpen[^a-zA-Z]*false/.test(uiLog)) throw new Error('Back did not open and close the confirmation panel');
+  if (!/panelOpen[^a-zA-Z]*false/.test(uiLog)) throw new Error('First Back unexpectedly opened a panel');
+  adb('shell', 'input', 'keyevent', '4', '4', '4'); await wait(1200);
+  if (!adb('logcat', '-d', '-s', 'SVideosUI:I').includes('Explicit exit: removing application task')) throw new Error('Triple Back did not reach native exit');
+  const activities = adb('shell', 'dumpsys', 'activity', 'activities');
+  if (/mResumedActivity[^\n]*app\.svideos\.plus/.test(activities)) throw new Error('App activity still resumed after exit');
+  adb('shell', 'am', 'start', '-W', '-n', 'app.svideos.plus/.MainActivity'); await wait(5000);
+  if (!(await dump('relaunch')).includes('каталог готов')) throw new Error('App failed to relaunch after full exit');
   const log = adb('logcat', '-d', '-s', 'AndroidRuntime:E');
   fs.writeFileSync(path.join(dir, 'android-runtime.txt'), log);
   if (log.includes('FATAL EXCEPTION')) throw new Error('Android runtime crash detected');
-  console.log('PASS: release APK installed, native Activity + packaged WebView rendered, offline failure survived, Back/confirmation preserved process, no AndroidRuntime crash.');
+  console.log('PASS: APK installed, WebView ready, single Back stays, triple Back removes task, relaunch works, no AndroidRuntime crash.');
 })().catch(error => { console.error(error.message); process.exitCode = 1; });
