@@ -69,4 +69,4 @@ jobs:
         run: |
           cp app/build/outputs/apk/release/app-release.apk S-Videos-Plus.apk
           node scripts/release-metadata.cjs S-Videos-Plus.apk
-          gh release create "$GITHUB_REF_NAME" S-Videos-Plus.apk update.json --prerelease --title "S Videos + ${GITHUB_REF_NAME}" --notes "Часы поверх каталога и плеера: ретро Flip, классические и янтарные цифровые. Компактное боковое меню, более широкие карточки и прокручиваемая шапка каталога."
+          gh release create "$GITHUB_REF_NAME" S-Videos-Plus.apk update.json --prerelease --title "S Videos + ${GITHUB_REF_NAME}" --notes "Фирменные шапки и логотипы восьми источников. Пять новых стилей часов. Увеличение выбранной карточки без наложения, рамка только вокруг превью. Боковые меню сохраняют фокус и прокрутку при обновлении."

@@ -25,6 +25,7 @@ catch { ({ chromium } = require('C:/Users/matyugin/.cache/codex-runtimes/codex-p
       await page.locator('.card').first().waitFor();
     }
     await page.goto(`http://127.0.0.1:${server.address().port}/?demo=1`);
+    assert.equal(await page.locator('#source-logo').isHidden(), true);
     await selectFirstSource();
     const clock = page.locator('#clock');
     assert.equal(await clock.getAttribute('data-style'), 'flip');
@@ -38,10 +39,25 @@ catch { ({ chromium } = require('C:/Users/matyugin/.cache/codex-runtimes/codex-p
     assert.deepEqual(await clock.boundingBox(), clockBounds);
     for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowUp');
     assert.ok(await page.locator('.category.active').evaluate(node => document.activeElement === node));
+    // First/last column, scrolled rows and the final card all fit without a clipped focus ring.
+    const cards = page.locator('.card');
+    for (const i of [0, 3, 12, 15, 23]) {
+      await cards.nth(i).focus();
+      await page.waitForFunction(index => {
+        const card = document.querySelectorAll('.card')[index], catalog = document.querySelector('#catalog');
+        const a = card.getBoundingClientRect(), b = catalog.getBoundingClientRect();
+        const left = index % 4 > 0 && card.previousElementSibling.getBoundingClientRect();
+        const right = index % 4 < 3 && card.nextElementSibling && card.nextElementSibling.getBoundingClientRect();
+        return a.width >= card.offsetWidth * 1.04 && a.left >= b.left && a.top >= b.top
+          && a.right <= b.left + catalog.clientWidth && a.bottom <= b.bottom
+          && (!left || left.right < a.left) && (!right || right.left > a.right);
+      }, i, { timeout: 3000 });
+    }
     await page.locator('#settings').click();
     await page.getByRole('button', { name: /^Часы:/ }).click();
     await page.getByRole('button', { name: 'Янтарные цифровые', exact: true }).click();
     assert.equal(await clock.getAttribute('data-style'), 'digital');
+    assert.equal(await page.evaluate(() => document.activeElement.textContent), 'Янтарные цифровые');
     assert.ok((await page.locator('#panel-close').boundingBox()).y > clockBounds.y + clockBounds.height);
     await page.reload(); await selectFirstSource();
     assert.equal(await clock.getAttribute('data-style'), 'digital');
@@ -49,10 +65,35 @@ catch { ({ chromium } = require('C:/Users/matyugin/.cache/codex-runtimes/codex-p
     await page.getByRole('button', { name: /^Часы:/ }).click();
     await page.getByRole('button', { name: 'Классические', exact: true }).click();
     assert.equal(await clock.getAttribute('data-style'), 'classic');
+    for (const [style, title, shape] of [
+      ['vfd', 'Зелёная электроника 90-х', 'rect'],
+      ['lcd', 'Карманный LCD', 'rect'],
+      ['led', 'Красный LED', 'rect'],
+      ['nixie', 'Ламповые Nixie', 'text'],
+      ['analog', 'Стрелочные', 'line']
+    ]) {
+      await page.getByRole('button', { name: title, exact: true }).click();
+      assert.equal(await clock.getAttribute('data-style'), style);
+      assert.ok(await clock.locator('svg ' + shape).count());
+      assert.equal(await page.evaluate(() => document.activeElement.textContent), title);
+    }
+    await page.reload(); await selectFirstSource();
+    assert.equal(await clock.getAttribute('data-style'), 'analog');
+    await page.locator('#settings').click();
+    await page.getByRole('button', { name: /^Часы:/ }).click();
     await page.getByRole('button', { name: 'Ретро Flip', exact: true }).click();
     assert.equal(await clock.getAttribute('data-style'), 'flip');
     await page.reload(); await selectFirstSource();
     await page.locator('.card').first().focus();
+    assert.deepEqual(await page.locator('.card').first().evaluate(card => {
+      const poster = card.querySelector('.poster'), title = card.querySelector('.card-title');
+      return {
+        frameOnImage: getComputedStyle(poster, '::before').content !== 'none',
+        frameOnCard: getComputedStyle(card, '::after').content !== 'none',
+        titleInset: title.getBoundingClientRect().left > poster.getBoundingClientRect().left,
+        titleBelow: title.getBoundingClientRect().top > poster.getBoundingClientRect().bottom
+      };
+    }), { frameOnImage: true, frameOnCard: false, titleInset: true, titleBelow: true });
     const geometry = await page.locator('.card').evaluateAll(nodes => nodes.slice(0, 5).map(node => ({ x: node.offsetLeft, y: node.offsetTop })));
     assert.equal(new Set(geometry.slice(0, 4).map(rect => rect.y)).size, 1);
     assert.ok(geometry[4].y > geometry[0].y);
@@ -65,6 +106,16 @@ catch { ({ chromium } = require('C:/Users/matyugin/.cache/codex-runtimes/codex-p
     assert.equal(await page.locator('.group-title').count(), 6);
     assert.equal(await page.locator('.group-title button').count(), 0);
     await page.getByRole('button', { name: 'Показать / скрыть страны  ›', exact: true }).click();
+    const countryMenu = page.locator('#panel-body');
+    const lastCountryOption = countryMenu.locator('button[data-action="hidden"]').last();
+    await lastCountryOption.evaluate(node => node.scrollIntoView({ block: 'end' }));
+    const countryScroll = await countryMenu.evaluate(node => node.scrollTop);
+    assert.ok(countryScroll > 0);
+    await lastCountryOption.focus();
+    await page.keyboard.press('Enter');
+    assert.equal(await lastCountryOption.evaluate(node => document.activeElement === node), true);
+    assert.equal(await countryMenu.evaluate(node => node.scrollTop), countryScroll);
+    await page.keyboard.press('Enter'); // restore the original visibility
     await page.getByRole('button', { name: 'Француженки — показывать', exact: true }).click();
     assert.equal(await page.getByRole('button', { name: 'Француженки — скрыта', exact: true }).getAttribute('aria-pressed'), 'false');
     await page.getByRole('button', { name: 'Закрепить наверху: Японки', exact: true }).click();
@@ -137,6 +188,7 @@ catch { ({ chromium } = require('C:/Users/matyugin/.cache/codex-runtimes/codex-p
     await page.getByRole('button', { name: /^Xvideos:/ }).click();
     await page.getByRole('button', { name: 'www.xvideos.es', exact: true }).click();
     assert.equal(await page.locator('.option.selected').textContent(), 'www.xvideos.es');
+    assert.equal(await page.evaluate(() => document.activeElement.textContent), 'www.xvideos.es');
     assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('svideos_settings')).mirror_xvideos), 'https://www.xvideos.es');
     await page.reload(); await selectFirstSource();
     await page.locator('#settings').click();
@@ -192,6 +244,7 @@ catch { ({ chromium } = require('C:/Users/matyugin/.cache/codex-runtimes/codex-p
     await page.locator('#settings').click();
     await page.getByRole('button', { name: 'Источники  ›', exact: true }).click();
     await page.getByRole('button', { name: 'Chaturbate — показывать', exact: true }).click();
+    assert.equal(await page.evaluate(() => document.activeElement.textContent), 'Chaturbate — скрыт');
     assert.equal(await page.locator('.source[data-source="chaturbate"]').count(), 0);
     await page.reload(); await selectFirstSource();
     assert.equal(await page.locator('.source[data-source="chaturbate"]').count(), 0);
@@ -232,6 +285,24 @@ catch { ({ chromium } = require('C:/Users/matyugin/.cache/codex-runtimes/codex-p
     assert.equal(await page.evaluate(() => window.exitCalls), 1);
     await page.keyboard.down('Escape'); await page.keyboard.down('Escape'); await page.keyboard.down('Escape'); await page.keyboard.up('Escape');
     assert.equal(await page.evaluate(() => window.exitCalls), 1);
+    assert.deepEqual(errors, []);
+    const brandIds = await page.locator('.source').evaluateAll(nodes => nodes.map(node => node.dataset.source));
+    await page.reload();
+    const gradients = new Set();
+    for (const id of brandIds) {
+      await page.locator('.source[data-source="' + id + '"]').click();
+      await page.waitForFunction(source => {
+        const logo = document.getElementById('source-logo');
+        return document.getElementById('catalog-header').dataset.source === source
+          && !logo.hidden && logo.complete && logo.naturalWidth > 0
+          && document.querySelector('.card');
+      }, id);
+      assert.equal(await page.locator('#source-text').isHidden(), true);
+      const gradient = await page.locator('#catalog-header').evaluate(header => getComputedStyle(header).backgroundImage);
+      assert.match(gradient, /linear-gradient/);
+      gradients.add(gradient);
+    }
+    assert.equal(gradients.size, 8);
     assert.deepEqual(errors, []);
     await page.clock.setFixedTime(new Date(2026, 10, 13, 10, 25));
     await page.evaluate(() => SVideosClock.refresh());

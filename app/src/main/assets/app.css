@@ -12,7 +12,11 @@
 #modal-layer.closing{pointer-events:none}
 #modal-layer.closing #panel{animation:panel-out 150ms ease-in forwards}
 #modal-layer.closing #scrim{animation:scrim-out 150ms ease-in forwards}
-button.card{transition:transform 120ms ease-out}button.card:focus{transform:scale(1.018)}
+/* Keep four stable D-pad columns. The gap fits even two transitioning cards. */
+button.card{transform:scale(.95);transition:transform 160ms ease-out}
+button.card:focus{transform:scale(1.045);outline:none;z-index:1}
+button.card:focus .poster::before{content:'';position:absolute;top:0;right:0;bottom:0;left:0;z-index:1;border-radius:inherit;box-shadow:inset 0 0 0 3px var(--mint);pointer-events:none}
+button.card .card-title,button.card .card-meta{margin-left:12px;margin-right:12px}
 @media(prefers-reduced-motion:reduce){[data-motion],#modal-layer.closing #panel,#modal-layer.closing #scrim{animation:none!important}button.card{transition:none}button.card:focus{transform:none}}
 /* Short color fades, no layout/blur/continuous card animations on TV GPUs. */
 button{transition:background-color 120ms ease-out,color 120ms ease-out}
@@ -25,10 +29,28 @@ button{transition:background-color 120ms ease-out,color 120ms ease-out}
 #toast{position:absolute;z-index:40;left:50%;bottom:90px;transform:translateX(-50%);padding:18px 30px;background:#29394b;border:1px solid #577286;border-radius:14px;max-width:1050px;font-size:21px;box-shadow:0 12px 40px #0005}#busy{position:absolute;z-index:30;top:26px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px;padding:15px 24px;background:#1a2838f2;border-radius:14px;font-size:18px}.spinner{width:23px;height:23px;border:2px solid #3d5b5a;border-top-color:var(--mint);border-radius:50%;animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
 /* Explicit geometry for older TV WebViews: no CSS inset/aspect-ratio requirement. */
 .rail{top:0;bottom:0;left:0}.poster{height:0;padding-top:56.25%;aspect-ratio:auto}.poster img,.poster.placeholder::after{position:absolute;top:0;right:0;bottom:0;left:0}.poster img{height:100%}#modal-layer,#scrim{top:0;right:0;bottom:0;left:0}#panel{top:0;right:0;bottom:0;left:auto}.brand{gap:0}.brand-mark{margin-right:12px}.actions{gap:0}.actions .action+.action{margin-left:16px}#categories{gap:0}.category{margin-right:16px}.source{gap:0}.source::before{margin-right:18px}
-#catalog{position:absolute;top:76px;left:246px;right:33px;bottom:0;overflow:auto;overflow-x:hidden;padding:0 7px 32px;scrollbar-width:thin;scrollbar-color:#34485b transparent}
+#catalog{position:absolute;top:76px;left:246px;right:33px;bottom:0;overflow:auto;overflow-x:hidden;padding:0 12px 32px;scroll-padding:12px 0;scrollbar-width:thin;scrollbar-color:#34485b transparent}
+#catalog-header[data-source]:not([data-source=""]){
+  margin:0 -12px 16px;padding:0 12px;
+  background:linear-gradient(180deg,var(--source-top) 0%,var(--source-top) 32%,var(--source-mid) 63%,transparent 100%);
+}
+#catalog-header[data-source]:not([data-source=""]) .section-heading{margin-bottom:0}
+#catalog-header[data-source="stripchat"]{--source-top:#99232c;--source-mid:#4b2028;--source-accent:#ff9fa7;--source-ink:#301015}
+#catalog-header[data-source="chaturbate"]{--source-top:#202c39;--source-mid:#192331;--source-accent:#ffb34a;--source-ink:#301900}
+#catalog-header[data-source="bongacams"]{--source-top:#952338;--source-mid:#4b1e2a;--source-accent:#ff9cb5;--source-ink:#391322}
+#catalog-header[data-source="runetki"]{--source-top:#111;--source-mid:#282017;--source-accent:#ff9b29;--source-ink:#271200}
+#catalog-header[data-source="efukt"]{--source-top:#080809;--source-mid:#201c26;--source-accent:#eee9f3;--source-ink:#211a2c}
+#catalog-header[data-source="xvideos"]{--source-top:#171717;--source-mid:#2c2527;--source-accent:#ff7771;--source-ink:#300c0a}
+#catalog-header[data-source="pornhub"]{--source-top:#111;--source-mid:#221b12;--source-accent:#ff9a19;--source-ink:#261300}
+#catalog-header[data-source="xhamster"]{--source-top:#202020;--source-mid:#2b2529;--source-accent:#f88e92;--source-ink:#300b10}
+#catalog-header[data-source]:not([data-source=""]) button{background:#10131de0;color:#f1f4f8}
+#catalog-header[data-source]:not([data-source=""]) button:focus{outline-color:var(--source-accent)}
+#catalog-header[data-source]:not([data-source=""]) .category.active{background:var(--source-accent);color:var(--source-ink)}
+#source-logo{display:block;width:auto;height:46px;max-width:300px;object-fit:contain;object-position:left center}
 #clock{position:absolute;z-index:50;top:18px;right:40px;height:46px;display:flex;align-items:center;pointer-events:none;font-variant-numeric:tabular-nums;white-space:nowrap}
 #clock[data-style="classic"]{font-size:27px;color:#eff5fb}
 #clock[data-style="digital"]{padding:0 12px;border-radius:7px;background:#221a13;color:#ffba69;font:700 28px monospace;letter-spacing:2px}
+#clock svg{display:block;width:138px;height:46px}
 .clock-digit{position:relative;width:28px;height:46px;margin-right:2px;background:#292522;color:#fff0d8;border-radius:5px;text-align:center;font:bold 34px/46px monospace;perspective:150px}
 .clock-digit:last-child{margin-right:0}
 .clock-digit::after{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:#13100f}

@@ -59,12 +59,20 @@
   function panel(title, draw, back) {
     resetExit(); clearTimeout(closeTimer); $('modal-layer').classList.remove('closing');
     const wasOpen = modal;
+    const body = $('panel-body');
+    const refresh = wasOpen && $('panel-title').textContent === title;
+    const active = document.activeElement;
+    const keepClose = refresh && active === $('panel-close');
+    const key = refresh && body.contains(active) ? active.dataset.panelKey : null;
+    const scroll = refresh ? body.scrollTop : 0;
     if (!modal) restoreFocus = document.activeElement;
     modal = true; panelBack = back || null; $('modal-layer').hidden = false;
-    $('panel-title').textContent = title; replace($('panel-body'));
-    draw($('panel-body'));
-    appear(wasOpen ? $('panel-body') : $('panel'), !wasOpen);
-    focus($('panel-body').querySelector('.selected, button, input, textarea') || $('panel-close'));
+    $('panel-title').textContent = title; replace(body);
+    draw(body);
+    body.scrollTop = scroll;
+    const retained = key && Array.from(body.querySelectorAll('[data-panel-key]')).find(node => node.dataset.panelKey === key);
+    if (!refresh) appear(wasOpen ? body : $('panel'), !wasOpen);
+    focus(retained || (keepClose && $('panel-close')) || body.querySelector('.selected') || body.querySelector('button, input, textarea') || $('panel-close'));
   }
   function closePanel() {
     if (!modal || $('modal-layer').classList.contains('closing')) return;
@@ -80,8 +88,9 @@
     else { $('modal-layer').classList.add('closing'); closeTimer = setTimeout(finish, 150); }
   }
   function description(body, message) { const p = document.createElement('p'); p.className = 'panel-description'; p.textContent = message; body.appendChild(p); }
-  function option(body, label, callback, selected = false) {
-    const node = button(label, 'option' + (selected ? ' selected' : ''), callback); body.appendChild(node); return node;
+  function option(body, label, callback, selected = false, key = label) {
+    const node = button(label, 'option' + (selected ? ' selected' : ''), callback);
+    node.dataset.panelKey = key; body.appendChild(node); return node;
   }
   function renderSourceButtons(selected) {
     replace($('sources'), ...visibleSourceIds().map(id => {
@@ -91,18 +100,29 @@
   }
   function renderLanding() {
     renderSourceButtons('');
-    $('source-name').textContent = 'S Videos +';
+    setSourceBrand('', 'S Videos +');
     $('section-title').textContent = 'Выберите источник';
     $('filter-summary').textContent = '';
     ['search', 'filters', 'favorites', 'next-page', 'busy'].forEach(id => { $(id).hidden = true; });
     replace($('categories')); replace($('cards'));
     $('empty').hidden = false; $('empty').textContent = 'Выберите источник слева и нажмите OK';
   }
+  function setSourceBrand(source, name) {
+    const header = $('catalog-header'), logo = $('source-logo'), label = $('source-text');
+    const branded = sourceIds.includes(source);
+    label.textContent = name;
+    if (header.dataset.source === source) return;
+    header.dataset.source = source;
+    label.hidden = branded; logo.hidden = !branded;
+    logo.alt = name;
+    if (branded) logo.src = 'brands/' + source + '.svg';
+    else logo.removeAttribute('src');
+  }
   function render(state) {
     const adapter = app.getAdapter(state.source);
     if (!adapter) { renderLanding(); return; }
     $('search').hidden = false; $('filters').hidden = false;
-    $('source-name').textContent = adapter.getName();
+    setSourceBrand(state.source, adapter.getName());
     $('favorites').hidden = !adapter.getCapabilities().favorites;
     const countries = state.filters.find(filter => filter.id === 'country');
     const selected = countries && countries.options.find(item => item.id === state.country);
@@ -189,12 +209,11 @@
           if (field === 'pinned' && next.pinned.includes(item.id)) next.hidden = next.hidden.filter(id => id !== item.id);
           if (!saveCountryPreferences(next)) return;
           countryVisibilityPanel();
-          focus(Array.from($('panel-body').querySelectorAll('button')).find(node => node.dataset.country === item.id && node.dataset.action === field));
         };
-        const visibility = option(body, item.title + (hidden ? ' — скрыта' : ' — показывать'), () => change('hidden'));
+        const visibility = option(body, item.title + (hidden ? ' — скрыта' : ' — показывать'), () => change('hidden'), false, 'hidden:' + item.id);
         visibility.setAttribute('aria-pressed', String(!hidden));
         visibility.dataset.country = item.id; visibility.dataset.action = 'hidden';
-        const pin = option(body, (pinned ? 'Открепить: ' : 'Закрепить наверху: ') + item.title, () => change('pinned'));
+        const pin = option(body, (pinned ? 'Открепить: ' : 'Закрепить наверху: ') + item.title, () => change('pinned'), false, 'pinned:' + item.id);
         pin.setAttribute('aria-pressed', String(pinned));
         pin.dataset.country = item.id; pin.dataset.action = 'pinned';
       });
@@ -323,7 +342,7 @@
   }
   function settingsPanel() {
     panel('Настройки', body => {
-      description(body, 'S Videos + · 0.1.0-alpha.10');
+      description(body, 'S Videos + · 0.1.0-alpha.11');
       option(body, 'Проверить обновления', () => native.call('checkUpdates').catch(error => toast(error.message)));
       option(body, 'Часы: ' + global.SVideosClock.styles[global.SVideosClock.style()] + '  ›', clockPanel);
       option(body, 'Источники  ›', sourcesPanel);
@@ -360,8 +379,7 @@
           if (model.state.source && !nextVisible.includes(model.state.source)) model.source(nextVisible[0]).catch(error => toast(error.message));
           else render(model.state);
           sourcesPanel();
-          focus(Array.from($('panel-body').querySelectorAll('button')).find(button => button.dataset.sourceOption === id));
-        });
+        }, false, 'source:' + id);
         node.dataset.sourceOption = id;
         node.setAttribute('aria-pressed', String(shown));
       });
@@ -403,6 +421,7 @@
       option(body, 'Без сторонних прокси', () => setMode('off'), !enabled);
       const label = document.createElement('label'); label.className = 'field-label'; label.textContent = 'Свой HTTPS-прокси (необязательно)'; body.appendChild(label);
       const input = document.createElement('textarea'); input.setAttribute('aria-label', 'Свой HTTPS-прокси'); input.value = app.Settings.get('proxy_url', ''); input.placeholder = 'https://your-proxy.example/?url={url}&referer={referer}'; input.spellcheck = false; body.appendChild(input);
+      input.dataset.panelKey = 'proxy-url';
       option(body, 'Сохранить адрес прокси', () => {
         const value = input.value.trim();
         if (value) { try { const url = new URL(value.replace('{url}', encodeURIComponent('https://example.com/')).replace('{referer}', '')); if (url.protocol !== 'https:' || url.username || url.password) throw new Error(); } catch (error) { return toast('Нужен корректный HTTPS-адрес без логина и пароля'); } }
@@ -421,6 +440,7 @@
         description(body, 'В системном поле можно вставить текст с телефона через Google TV. Существующая сессия не показывается и не заменяется до сохранения.');
       } else {
         const input = document.createElement('textarea'); input.placeholder = 'Cookie авторизованной сессии'; input.setAttribute('aria-label', 'Cookie'); input.autocomplete = 'off'; input.spellcheck = false; body.appendChild(input);
+        input.dataset.panelKey = 'session-input';
         option(body, 'Сохранить сессию', () => { const value = input.value.trim().replace(/^cookie\s*:\s*/i, ''); if (!value) return toast('Вставьте Cookie'); app.Auth.setSession(id, value); input.value = ''; toast('Сессия сохранена'); accountPanel(id); });
       }
       option(body, 'Проверить подключение', async () => { toast('Проверка подключения…'); const state = await app.Auth.validate(adapter, true); toast(state.message); if (modal && $('panel-title').textContent === 'Аккаунт ' + adapter.getName()) accountPanel(id); });
@@ -552,6 +572,7 @@
     if (type === 'storageError') toast('Не удалось сохранить настройку на устройстве');
   };
   $('search').addEventListener('click', searchPanel); $('filters').addEventListener('click', filterPanel);
+  $('source-logo').addEventListener('error', () => { $('source-logo').hidden = true; $('source-text').hidden = false; });
   document.addEventListener('click', resetExit, true);
   $('settings').addEventListener('click', settingsPanel); $('panel-close').addEventListener('click', closePanel); $('scrim').addEventListener('click', closePanel);
   $('favorites').addEventListener('click', () => { model.state.favorites = true; model.state.query = ''; model.load(); });

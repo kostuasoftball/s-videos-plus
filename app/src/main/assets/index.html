@@ -19,11 +19,13 @@
     </div>
   </aside>
   <main id="catalog">
-    <div class="heading"><h1 id="source-name">S Videos +</h1>
-      <div class="actions"><button id="search" class="action">⌕ <span>Поиск</span></button><button id="filters" class="action">☷ <span>Фильтры</span></button></div>
-    </div>
-    <nav id="categories" aria-label="Категории"></nav>
-    <div class="section-heading"><h2 id="section-title">Популярные сейчас</h2><span id="filter-summary">Все страны</span></div>
+    <header id="catalog-header">
+      <div class="heading"><h1 id="source-name"><span id="source-text">S Videos +</span><img id="source-logo" hidden alt=""></h1>
+        <div class="actions"><button id="search" class="action">⌕ <span>Поиск</span></button><button id="filters" class="action">☷ <span>Фильтры</span></button></div>
+      </div>
+      <nav id="categories" aria-label="Категории"></nav>
+      <div class="section-heading"><h2 id="section-title">Популярные сейчас</h2><span id="filter-summary">Все страны</span></div>
+    </header>
     <div id="cards" role="list"></div><div id="empty" hidden></div><button id="next-page" class="action" hidden>Загрузить следующую страницу</button>
   </main>
   <div id="modal-layer" hidden><button id="scrim" tabindex="-1" aria-label="Закрыть"></button><section id="panel" role="dialog" aria-modal="true" aria-labelledby="panel-title"><div class="panel-top"><h2 id="panel-title"></h2><button id="panel-close" class="icon-button" aria-label="Закрыть">×</button></div><div id="panel-body"></div><div class="panel-hint">BACK · Назад &nbsp;&nbsp; OK · Выбрать</div></section></div>
