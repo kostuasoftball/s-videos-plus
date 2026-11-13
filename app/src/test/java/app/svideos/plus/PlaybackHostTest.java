@@ -74,6 +74,21 @@ public class PlaybackHostTest {
         h.finish();
     }
 
+    @Test public void clockAbovePlaybackRemainsVisibleWhenHudIsHidden() {
+        Harness h = new Harness();
+        ClockOverlay clock = new ClockOverlay(h.activity);
+        h.root.addView(clock, new FrameLayout.LayoutParams(-1, -1));
+        clock.start();
+        assertSame(clock, h.root.getChildAt(h.root.getChildCount() - 1));
+        assertFalse(clock.isFocusable());
+        h.key(KeyEvent.KEYCODE_BACK);
+        assertFalse(h.host.controlsVisible());
+        assertTrue(h.host.visible());
+        assertEquals(View.VISIBLE, clock.getVisibility());
+        clock.stop();
+        h.finish();
+    }
+
     @Test public void transportButtonsAndCloseStillWork() {
         Harness h = new Harness();
         android.view.ViewGroup bar = (android.view.ViewGroup) h.layer.getChildAt(1);

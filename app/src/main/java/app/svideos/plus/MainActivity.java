@@ -31,6 +31,7 @@ public final class MainActivity extends Activity {
     private SecureStore store;
     private ImageLoader images;
     private PlaybackHost playback;
+    private ClockOverlay clock;
     private AppUpdater updater;
     private SessionInput sessionInput;
     private volatile boolean destroyed;
@@ -92,6 +93,8 @@ public final class MainActivity extends Activity {
             }
         });
         playback = new PlaybackHost(this, root, this::event, store);
+        clock = new ClockOverlay(this);
+        root.addView(clock, new FrameLayout.LayoutParams(-1, -1));
         web.loadUrl("https://" + ORIGIN + "/index.html");
         web.requestFocus();
     }
@@ -124,9 +127,22 @@ public final class MainActivity extends Activity {
     }
 
     private final class Bridge {
-        @JavascriptInterface public String readSettings() { return store.read(); }
+        @JavascriptInterface public String readSettings() {
+            String settings = store.read();
+            try {
+                String style = new JSONObject(settings).optString("clock_style");
+                runOnUiThread(() -> clock.setStyle(style));
+            } catch (Exception ignored) { /* default clock style */ }
+            return settings;
+        }
         @JavascriptInterface public void writeSetting(String key, String value) {
-            try { store.write(key, value); } catch (Exception error) { event("storageError", ""); }
+            try {
+                store.write(key, value);
+                if ("clock_style".equals(key)) {
+                    Object style = new org.json.JSONTokener(value).nextValue();
+                    runOnUiThread(() -> clock.setStyle(String.valueOf(style)));
+                }
+            } catch (Exception error) { event("storageError", ""); }
         }
         @JavascriptInterface public void dispatch(String id, String method, String payload) {
             if (destroyed) return;
@@ -168,8 +184,8 @@ public final class MainActivity extends Activity {
         if (playback != null && playback.handleKeyEvent(event)) return true;
         return super.dispatchKeyEvent(event);
     }
-    @Override protected void onStop() { super.onStop(); playback.pause(); web.onPause(); }
-    @Override protected void onStart() { super.onStart(); if (web != null) web.onResume(); }
+    @Override protected void onStop() { super.onStop(); clock.stop(); playback.pause(); web.onPause(); }
+    @Override protected void onStart() { super.onStart(); if (web != null) web.onResume(); if (clock != null) clock.start(); }
     @Override protected void onResume() { super.onResume(); if (updater != null) updater.resume(); }
     @Override protected void onDestroy() {
         destroyed = true; network.shutdownNow();

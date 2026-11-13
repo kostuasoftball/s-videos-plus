@@ -26,6 +26,32 @@ catch { ({ chromium } = require('C:/Users/matyugin/.cache/codex-runtimes/codex-p
     }
     await page.goto(`http://127.0.0.1:${server.address().port}/?demo=1`);
     await selectFirstSource();
+    const clock = page.locator('#clock');
+    assert.equal(await clock.getAttribute('data-style'), 'flip');
+    assert.equal(await clock.locator('.clock-digit').count(), 4);
+    assert.match(await clock.getAttribute('datetime'), /^\d\d:\d\d$/);
+    const clockBounds = await clock.boundingBox();
+    assert.ok(clockBounds.y + clockBounds.height < (await page.locator('.heading').boundingBox()).y);
+    await page.locator('.card').nth(12).focus();
+    assert.ok(await page.locator('#catalog').evaluate(node => node.scrollTop > 0));
+    assert.ok((await page.locator('.heading').boundingBox()).y < 76);
+    assert.deepEqual(await clock.boundingBox(), clockBounds);
+    for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowUp');
+    assert.ok(await page.locator('.category.active').evaluate(node => document.activeElement === node));
+    await page.locator('#settings').click();
+    await page.getByRole('button', { name: /^Часы:/ }).click();
+    await page.getByRole('button', { name: 'Янтарные цифровые', exact: true }).click();
+    assert.equal(await clock.getAttribute('data-style'), 'digital');
+    assert.ok((await page.locator('#panel-close').boundingBox()).y > clockBounds.y + clockBounds.height);
+    await page.reload(); await selectFirstSource();
+    assert.equal(await clock.getAttribute('data-style'), 'digital');
+    await page.locator('#settings').click();
+    await page.getByRole('button', { name: /^Часы:/ }).click();
+    await page.getByRole('button', { name: 'Классические', exact: true }).click();
+    assert.equal(await clock.getAttribute('data-style'), 'classic');
+    await page.getByRole('button', { name: 'Ретро Flip', exact: true }).click();
+    assert.equal(await clock.getAttribute('data-style'), 'flip');
+    await page.reload(); await selectFirstSource();
     await page.locator('.card').first().focus();
     const geometry = await page.locator('.card').evaluateAll(nodes => nodes.slice(0, 5).map(node => ({ x: node.offsetLeft, y: node.offsetTop })));
     assert.equal(new Set(geometry.slice(0, 4).map(rect => rect.y)).size, 1);
@@ -207,6 +233,21 @@ catch { ({ chromium } = require('C:/Users/matyugin/.cache/codex-runtimes/codex-p
     await page.keyboard.down('Escape'); await page.keyboard.down('Escape'); await page.keyboard.down('Escape'); await page.keyboard.up('Escape');
     assert.equal(await page.evaluate(() => window.exitCalls), 1);
     assert.deepEqual(errors, []);
+    await page.clock.setFixedTime(new Date(2026, 10, 13, 10, 25));
+    await page.evaluate(() => SVideosClock.refresh());
+    await clock.locator('.clock-leaf').first().waitFor({ state: 'detached' });
+    await page.clock.setFixedTime(new Date(2026, 10, 13, 10, 26));
+    assert.equal(await page.evaluate(() => {
+      SVideosClock.refresh();
+      return document.querySelectorAll('.clock-digit .clock-leaf').length;
+    }), 2);
+    assert.equal(await clock.getAttribute('datetime'), '10:26');
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.clock.setFixedTime(new Date(2026, 10, 13, 10, 27));
+    await page.evaluate(() => SVideosClock.refresh());
+    assert.equal(await clock.locator('.clock-leaf').count(), 0);
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.clock.setFixedTime(new Date());
     console.log('PASS: four columns, D-pad, return focus to active source/card, reduced motion, filters, country order/restart persistence, search/back, accounts, native session entry, mirrors, source visibility/restart/fallback/last-source guard. No JS runtime errors.');
   } finally { if (browser) await browser.close(); await new Promise(resolve => server.close(resolve)); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

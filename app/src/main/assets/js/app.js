@@ -16,7 +16,6 @@
     return visible.length ? visible : [sourceIds[0]];
   }
   if (demo) {
-    $('demo-label').hidden = false;
     sourceIds.forEach(id => {
       const adapter = app.getAdapter(id);
       adapter.getList = async () => ({ items: Array.from({ length: 24 }, (_, i) => ({
@@ -40,7 +39,6 @@
     $('screen').style.left = (width - 1600 * ratio) / 2 + 'px';
     $('screen').style.top = (height - 900 * ratio) / 2 + 'px';
   }
-  function clock() { $('clock').textContent = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }); }
   function toast(message) {
     $('toast').textContent = message; $('toast').hidden = false;
     clearTimeout(toastTimer); toastTimer = setTimeout(() => { $('toast').hidden = true; }, 5000);
@@ -94,27 +92,23 @@
   function renderLanding() {
     renderSourceButtons('');
     $('source-name').textContent = 'S Videos +';
-    $('source-description').textContent = 'Выберите источник слева и нажмите OK';
     $('section-title').textContent = 'Выберите источник';
-    $('breadcrumb').textContent = 'Главная';
     $('filter-summary').textContent = '';
     ['search', 'filters', 'favorites', 'next-page', 'busy'].forEach(id => { $(id).hidden = true; });
     replace($('categories')); replace($('cards'));
-    $('empty').hidden = false; $('empty').textContent = 'Каталог загрузится после выбора источника.';
+    $('empty').hidden = false; $('empty').textContent = 'Выберите источник слева и нажмите OK';
   }
   function render(state) {
     const adapter = app.getAdapter(state.source);
     if (!adapter) { renderLanding(); return; }
     $('search').hidden = false; $('filters').hidden = false;
     $('source-name').textContent = adapter.getName();
-    $('source-description').textContent = ['stripchat', 'chaturbate', 'bongacams', 'runetki'].includes(state.source) ? 'Прямые трансляции' : 'Видеокаталог';
     $('favorites').hidden = !adapter.getCapabilities().favorites;
     const countries = state.filters.find(filter => filter.id === 'country');
     const selected = countries && countries.options.find(item => item.id === state.country);
     $('filter-summary').textContent = selected ? selected.title : 'Все страны';
     const category = state.categories.find(item => item.id === state.category);
     $('section-title').textContent = state.favorites ? 'Избранные модели' : state.query ? 'Поиск: ' + state.query : (category && category.title) || 'Каталог';
-    $('breadcrumb').textContent = state.query ? 'Каталог / Поиск' : 'Каталог';
     $('busy').hidden = !state.busy;
     const key = JSON.stringify([state.source, state.category, state.categories, visibleSourceIds()]);
     if (sourcesKey !== key) {
@@ -147,8 +141,8 @@
         meta.appendChild(country); card.append(poster, title, meta); return card;
       }));
       appear($('cards'));
-      if (!modal && hadCardFocus && state.items.length) focus(Array.from(document.querySelectorAll('.card')).find(card => card.dataset.id === priorId) || document.querySelector('.card'));
       if (state.page === 1) $('catalog').scrollTop = 0;
+      if (!modal && hadCardFocus && state.items.length) focus(Array.from(document.querySelectorAll('.card')).find(card => card.dataset.id === priorId) || document.querySelector('.card'));
     }
     $('next-page').hidden = state.busy || state.page >= state.totalPages;
     $('empty').hidden = state.busy || state.items.length > 0;
@@ -161,7 +155,9 @@
       focus(document.querySelector('.card') || $('empty').querySelector('button') || document.querySelector('.source.active'));
     }
   }
-  function selectSource(id) { app.Settings.set('last_source', id); closePanel(); return model.source(id); }
+  function selectSource(id) {
+    app.Settings.set('last_source', id); closePanel(); $('catalog').scrollTop = 0; return model.source(id);
+  }
   // Menu preferences only: do not change adapter queries or catalog contents.
   function countryPreferences() {
     const saved = app.Settings.get('country_menu_' + model.state.source, {});
@@ -327,8 +323,9 @@
   }
   function settingsPanel() {
     panel('Настройки', body => {
-      description(body, 'S Videos + · 0.1.0-alpha.9');
+      description(body, 'S Videos + · 0.1.0-alpha.10');
       option(body, 'Проверить обновления', () => native.call('checkUpdates').catch(error => toast(error.message)));
+      option(body, 'Часы: ' + global.SVideosClock.styles[global.SVideosClock.style()] + '  ›', clockPanel);
       option(body, 'Источники  ›', sourcesPanel);
       option(body, 'Зеркала  ›', mirrorsPanel);
       const proxyEnabled = app.Settings.get('public_proxy', true);
@@ -339,6 +336,15 @@
       option(body, 'Очистить кэш каталогов', () => { app.Api.cache.clear(); toast('Кэш очищен'); });
       option(body, 'О приложении', () => panel('S Videos +', panelBody => description(panelBody, 'Отдельное приложение Android TV. Восемь независимых адаптеров, интерфейс Calm и нативный плеер Media3. Данные сайтов могут изменяться. Исходники плагина Lampa не изменяются.'), settingsPanel));
     });
+  }
+  function clockPanel() {
+    panel('Тип часов', body => {
+      const clock = global.SVideosClock;
+      Object.keys(clock.styles).forEach(style => option(body, clock.styles[style], () => {
+        try { app.Settings.set('clock_style', style); clock.refresh(); clockPanel(); }
+        catch (error) { toast('Не удалось сохранить тип часов'); }
+      }, clock.style() === style));
+    }, settingsPanel);
   }
   function sourcesPanel() {
     panel('Источники', body => {
@@ -550,7 +556,7 @@
   $('settings').addEventListener('click', settingsPanel); $('panel-close').addEventListener('click', closePanel); $('scrim').addEventListener('click', closePanel);
   $('favorites').addEventListener('click', () => { model.state.favorites = true; model.state.query = ''; model.load(); });
   $('next-page').addEventListener('click', () => model.nextPage());
-  window.addEventListener('resize', scale); scale(); clock(); setInterval(clock, 30000);
+  window.addEventListener('resize', scale); scale();
   renderLanding();
   focus(document.querySelector('.source'));
   global.SVideosUI = { model, move, filterPanel, back };

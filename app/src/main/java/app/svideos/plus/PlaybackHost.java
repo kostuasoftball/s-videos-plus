@@ -61,6 +61,13 @@ final class PlaybackHost {
         playerView.setControllerAutoShow(false);
         bar = new LinearLayout(activity); bar.setGravity(Gravity.CENTER_VERTICAL); bar.setPadding(dp(22), dp(12), dp(22), dp(12)); bar.setBackgroundColor(0xC018202D);
         FrameLayout.LayoutParams barParams = new FrameLayout.LayoutParams(-1, -2, Gravity.TOP); layer.addView(bar, barParams);
+        layer.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+            // Reserve the same scaled top band as the catalog, leaving the clock above the HUD.
+            float height = bottom - top;
+            float scale = Math.min((right - left) / 1600f, height / 900f);
+            int margin = Math.round((height - 900 * scale) / 2f + 76 * scale);
+            if (barParams.topMargin != margin) { barParams.topMargin = margin; bar.setLayoutParams(barParams); }
+        });
         title = new TextView(activity); title.setTextColor(Color.WHITE); title.setTextSize(18); title.setSingleLine(true); title.setEllipsize(android.text.TextUtils.TruncateAt.END);
         title.setTypeface(Typeface.DEFAULT, Typeface.BOLD); bar.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
         previous = action(bar, "Предыдущее", () -> events.send("previous", ""));
